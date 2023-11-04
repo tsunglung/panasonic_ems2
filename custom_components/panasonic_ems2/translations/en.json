@@ -1,0 +1,41 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Account is already configured",
+            "single_instance_allowed": "Only a single instance is allowed."
+        },
+        "error": {
+            "connection_error": "Can't connect to Panasonic Smart Home Cloud.",
+            "rate_limit": "API rate limit is reached. Please retry later.",
+            "auth": "Username orPassword is incorrect.",
+            "network_busy": "Network busy, Please try again later!"
+        },
+        "flow_title": "Panasonic Smart Home: {name}",
+        "step": {
+            "user": {
+                "data": {
+                    "username": "Username",
+                    "password": "Password"
+                },
+                "description": "Login with your Panasonic Smart Home credentials"
+            }
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "Panasonic Smart Home",
+                "data": {
+                    "update_interval": "Password"
+                }
+            }
+        }
+    },
+    "system_health": {
+        "info": {
+            "version": "Version",
+            "api_counts": "Panasonic Cloud API Connections",
+            "api_counts_per_hour": "Panasonic Cloud API Connections per hour"
+        }
+    }
+}

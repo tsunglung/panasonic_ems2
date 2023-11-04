@@ -1,103 +1,46 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/hacs/integration)
-![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/osk2/panasonic_smart_app?style=for-the-badge)
-[![GitHub license](https://img.shields.io/github/license/osk2/panasonic_smart_app?style=for-the-badge)](https://github.com/osk2/panasonic_smart_app/blob/master/LICENSE)
+![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/tsunglung/panasonic_ems2?style=for-the-badge)
+[![GitHub license](https://img.shields.io/github/license/tsunglung/panasonic_ems2?style=for-the-badge)](https://github.com/osk2/panasonic_smart_app/blob/master/LICENSE)
 
-<a href="https://www.buymeacoffee.com/osk2" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 
-[繁體中文](README-zh.md) | [English](README.md)
+[繁體中文](README_zh-tw.md) | [English](README.md)
 
-# Panasonic Smart App
+# Panasonic IoT TW
 
-Home Assistant integration for [Panasonic Smart App](https://play.google.com/store/apps/details?id=com.panasonic.smart&hl=zh_TW&gl=US).
+Home Assistant integration for Panasonic IoT TW [Android](https://play.google.com/store/apps/details?id=com.panasonic.smart&hl=zh_TW&gl=US&pli=1) [iOS](https://apps.apple.com/tw/app/panasonic-iot-tw/id904484053).
 
-This integration allows you to control your Panasonic appliances.
+This integration allows you to control your Panasonic IoT appliances.
+
+This project is forked from [Osk2's](https://github.com/osk2) [panasonic_smart_app](https://github.com/osk2/panasonic_smart_appp).
+<a href="https://www.buymeacoffee.com/osk2" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 20px !important;width: 70px !important;" ></a>
 
 ## Note
 
-Only Panasonic Smart App is supported. If you are using Panasonic Comfort Cloud. Use [sockless-coding/panasonic_cc](https://github.com/sockless-coding/panasonic_cc) instead.
-
-| ![smart-app-icon](https://raw.githubusercontent.com/osk2/panasonic_smart_app/master/assets/smart-app-icon.png) | ![comfort-cloud-icon](https://raw.githubusercontent.com/osk2/panasonic_smart_app/master/assets/comfort-cloud-icon.png) |
-| :------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------: |
-|                                                  ✅ Supported                                                  |                                                     ❌ Unsupported                                                     |
-
-This project is forked from [PhantasWeng's](https://github.com/PhantasWeng/) [panasonic_smart_app](https://github.com/PhantasWeng/panasonic_smart_app). Main differences are:
-
-1. Implement more platforms
-2. Add config flow to make setup much more easier
-3. Support device info
-
-_For all supported entities, check out [Available Entities](#available-entities)._
+1. This integration only support the latest version of Panasonic IoT module, please use the latest version of IoT module.
+2. The code was refacotred, so it is still in draft and currently only support Clmate, Washing Machine and Dehumidifier.
 
 # Installation
 
-### Via HACS (recommended)
+You can install component with [HACS](https://hacs.xyz/) custom repo: HACS > Integrations > 3 dots (upper top corner) > Custom repositories > URL: `tsunglung/panasonic_ems2` > Category: Integration
 
-Search and install `Panasonic Smart App` in HACS
+Then restart Home Assistant.
 
-### Manually
+### Manually Installation
 
-Copy `custom_components/panasonic_smart_app` into your `custom_components/`.
+Copy `panasonic_ems2` folder of custom_components in this repository to `custom_components` folder in your config folder.
 
 # Configuration
 
-1. Search `Panasonic Smart App` in the integration list
-2. Follow the steps on UI to finish the configuration
+**Please use the config flow of Home Assistant**
 
-# Note
+1. With GUI. Configuration > Integration > Add Integration > `Panasonic Smart IoT`
+   1. If the integration didn't show up in the list please REFRESH the page
+   2. If the integration is still not in the list, you need to clear the browser cache.
+2. Enter the Login info (email and password of [Panasonic Cloud](https://club.panasonic.tw/))
+3. Enjoy
 
-### Supported Devices
+Buy Me A Coffee
 
-See [支援的裝置 / Supported devices](https://github.com/osk2/panasonic_smart_app/discussions/42) for detail of supported devices.
-
-### Available Entities
-
-| Device Type     | Entity Type   | Note                           |
-| --------------- | ------------- | ------------------------------ |
-| AC              | climate       |                                |
-|                 | number        | On timer\*                     |
-|                 | number        | Off timer                      |
-|                 | sensor        | Outdoor temperature sensor     |
-|                 | sensor        | PM2.5 sensor                   |
-|                 | switch        | nanoe switch\*                 |
-|                 | switch        | ECONAVI swtich\*               |
-|                 | switch        | Buzzer switch\*                |
-|                 | switch        | Turbo mode switch\*            |
-|                 | switch        | Self-clean mode switch\*       |
-|                 | switch        | Mold prevention switch\*       |
-|                 | switch        | Sleep mode switch\*            |
-|                 | select        | Motion detection mode select\* |
-|                 | select        | Indicator light select\*       |
-| Dehumidifier    | humidifier    |                                |
-|                 | number        | On timer\*                     |
-|                 | number        | Off timer                      |
-|                 | select        | Fan mode\*                     |
-|                 | sensor        | Environment humidity sensor    |
-|                 | sensor        | PM2.5 sensor                   |
-|                 | binary_sensor | Water tank status sensor       |
-| Washing Machine | sensor        | Countdown sensor               |
-|                 | sensor        | Device status sensor           |
-|                 | sensor        | Washing mode sensor            |
-|                 | sensor        | Washing cycle sensor           |
-
-\*Only available if the feature is supported.
-
-Note: Ensure the latest Home Assistant is installed or some entities might not be available.
-
-For missing entities, open an issue or submit a PR 💪
-
-### Enable Logs
-
-⚠️ Logs may contain some sensitive information. Be very careful before you post logs.
-
-Add the following configs to `configuration.yaml`:
-
-```yaml
-logger:
-  default: warning
-  logs:
-    custom_components.panasonic_smart_app: debug
-```
-
-# License
-
-This project is licensed under MIT license. See [LICENSE](LICENSE) file for details.
+|  LINE Pay | LINE Bank | JKao Pay |
+| :------------: | :------------: | :------------: |
+| <img src="https://github.com/tsunglung/TwANWS/blob/master/linepay.jpg" alt="Line Pay" height="200" width="200">  | <img src="https://github.com/tsunglung/TwANWS/blob/master/linebank.jpg" alt="Line Bank" height="200" width="200">  | <img src="https://github.com/tsunglung/TwANWS/blob/master/jkopay.jpg" alt="JKo Pay" height="200" width="200">  |

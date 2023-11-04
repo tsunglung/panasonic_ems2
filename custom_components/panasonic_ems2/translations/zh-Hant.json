@@ -1,0 +1,41 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "\u5E33\u6236\u7d93\u8a2d\u5b9a\u5b8c\u6210",
+            "single_instance_allowed": "\u50c5\u80fd\u5efa\u7acb\u4e00\u500b\u5be6\u4f8b"
+        },
+        "error": {
+            "connection_error": "\u7121\u6cd5\u9023\u7dda\u81f3 \u570b\u969b\u724c\u667a\u6167\u64cd\u4f5c\u7cfb\u7d71 \uff0c",
+            "rate_limit": "API \u5df2\u9054\u7528\u91cf\u4e0a\u9650\uff0c\u8acb\u7a0d\u5019\u91cd\u8a66\u4e00\u6b21",
+            "auth": "\u5e33\u865f\u6216\u5bc6\u78bc\u6709\u8aa4\u3002",
+            "network_busy": "\u7db2\u8def\u5fd9\u788c\uff0c\u8acb\u7a0d\u5f8c\u5617\u8a66\uff01!"
+        },
+        "flow_title": "\u570b\u969b\u724c\u667a\u6167\u5bb6\u5ead {name}",
+        "step": {
+            "user": {
+                "data": {
+                    "username": "\u4f7f\u7528\u8005\u5e33\u865f",
+                    "password": "\u5bc6\u78bc"
+                },
+                "description": "\u767b\u5165\u60a8\u7684 \u570b\u969b\u724c\u667a\u6167\u5bb6\u5ead \u5e33\u6236"
+            }
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "\u570b\u969b\u724c\u667a\u6167\u64cd\u4f5c\u7cfb\u7d71",
+                "data": {
+                    "update_interval": "\u66F4\u65B0\u9593\u9694"
+                }
+            }
+        }
+    },
+    "system_health": {
+        "info": {
+            "version": "\u7248\u672c",
+            "api_counts": "Panasonic \u96f2 API \u5b58\u53d6\u6b21\u6578",
+            "api_counts_per_hour": "\u6bcf\u5c0f\u6642 Panasonic \u96f2 API \u5b58\u53d6\u6b21\u6578"
+        }
+    }
+}
