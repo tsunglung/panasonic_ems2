@@ -11,10 +11,7 @@ from .core.const import (
     DOMAIN,
     DATA_CLIENT,
     DATA_COORDINATOR,
-    DEVICE_TYPE_CLIMATE,
-    DEVICE_TYPE_DEHUMIDIFIER,
-    CLIMATE_NUMBERS,
-    DEHUMIDIFIER_NUMBERS,
+    SAA_NUMBERS,
     PanasonicNumberDescription
 )
 SCAN_INTERVAL = timedelta(seconds=60)
@@ -37,21 +34,14 @@ async def async_setup_entry(hass, entry, async_add_entities) -> bool:
                 device_id = dev["DeviceID"]
                 status = dev["status"]
 
-                if device_type == DEVICE_TYPE_CLIMATE:
-                    for description in CLIMATE_NUMBERS:
-                        if description.key in status:
-                            entities.extend(
-                                [PanasonicNumber(
-                                    coordinator, device_gwid, device_id, client, info, description)]
-                            )
-
-                if device_type == DEVICE_TYPE_DEHUMIDIFIER:
-                    for description in DEHUMIDIFIER_NUMBERS:
-                        if description.key in status:
-                            entities.extend(
-                                [PanasonicNumber(
-                                    coordinator, device_gwid, device_id, client, info, description)]
-                            )
+                for saa, numbers in SAA_NUMBERS.items():
+                    if device_type == saa:
+                        for description in numbers:
+                            if description.key in status:
+                                entities.extend(
+                                    [PanasonicNumber(
+                                        coordinator, device_gwid, device_id, client, info, description)]
+                                )
 
         async_add_entities(entities)
     except AttributeError as ex:

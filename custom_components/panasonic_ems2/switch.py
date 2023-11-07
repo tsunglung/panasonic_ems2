@@ -13,19 +13,15 @@ from .core.const import (
     DOMAIN,
     DATA_CLIENT,
     DATA_COORDINATOR,
-    DEVICE_TYPE_AIRPURIFIER,
-    DEVICE_TYPE_CLIMATE,
-    DEVICE_TYPE_DEHUMIDIFIER,
     DEVICE_TYPE_WASHING_MACHINE,
-    AIRPURIFIER_SWITCHES,
-    CLIMATE_SWITCHES,
-    DEHUMIDIFIER_SWITCHES,
     WASHING_MACHINE_SWITCHES,
+    SAA_SWITCHES,
     PanasonicSwitchDescription
 )
 SCAN_INTERVAL = timedelta(seconds=60)
 
 _LOGGER = logging.getLogger(__name__)
+
 
 async def async_setup_entry(hass, entry, async_add_entities) -> bool:
     client = hass.data[DOMAIN][entry.entry_id][DATA_CLIENT]
@@ -42,29 +38,15 @@ async def async_setup_entry(hass, entry, async_add_entities) -> bool:
             for dev in info.get("Information", {}):
                 device_id = dev["DeviceID"]
                 status = dev["status"]
-                if device_type == DEVICE_TYPE_AIRPURIFIER:
-                    for description in AIRPURIFIER_SWITCHES:
-                        if description.key in status:
-                            entities.extend(
-                                [PanasonicSwitch(
-                                    coordinator, device_gwid, device_id, client, info, description)]
-                            )
 
-                if device_type == DEVICE_TYPE_CLIMATE:
-                    for description in CLIMATE_SWITCHES:
-                        if description.key in status:
-                            entities.extend(
-                                [PanasonicSwitch(
-                                    coordinator, device_gwid, device_id, client, info, description)]
-                            )
-
-                if device_type == DEVICE_TYPE_DEHUMIDIFIER:
-                    for description in DEHUMIDIFIER_SWITCHES:
-                        if description.key in status:
-                            entities.extend(
-                                [PanasonicSwitch(
-                                    coordinator, device_gwid, device_id, client, info, description)]
-                            )
+                for saa, switchs in SAA_SWITCHES.items():
+                    if device_type == saa:
+                        for description in switchs:
+                            if description.key in status:
+                                entities.extend(
+                                    [PanasonicSwitch(
+                                        coordinator, device_gwid, device_id, client, info, description)]
+                                )
 
             if device_type == DEVICE_TYPE_WASHING_MACHINE:
                 for description in WASHING_MACHINE_SWITCHES:
@@ -104,7 +86,7 @@ class PanasonicSwitch(PanasonicBaseEntity, SwitchEntity):
 
         if name is not None:
             # hard code
-            if "nanoeX" in name:
+            if "nanoe" in name:
                 return "{} {}".format(
                     self.info["NickName"], self.entity_description.name
                 )

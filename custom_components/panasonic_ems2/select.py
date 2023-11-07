@@ -11,19 +11,15 @@ from .core.const import (
     DOMAIN,
     DATA_CLIENT,
     DATA_COORDINATOR,
-    DEVICE_TYPE_AIRPURIFIER,
-    DEVICE_TYPE_CLIMATE,
-    DEVICE_TYPE_DEHUMIDIFIER,
+    SAA_SELECTS,
     DEVICE_TYPE_WASHING_MACHINE,
-    AIRPURIFIER_SELECTS,
-    CLIMATE_SELECTS,
-    DEHUMIDIFIER_SELECTS,
     WASHING_MACHINE_SELECTS,
     PanasonicSelectDescription
 )
 SCAN_INTERVAL = timedelta(seconds=60)
 
 _LOGGER = logging.getLogger(__name__)
+
 
 async def async_setup_entry(hass, entry, async_add_entities) -> bool:
     client = hass.data[DOMAIN][entry.entry_id][DATA_CLIENT]
@@ -40,29 +36,15 @@ async def async_setup_entry(hass, entry, async_add_entities) -> bool:
             for dev in info.get("Information", {}):
                 device_id = dev["DeviceID"]
                 status = dev["status"]
-                if device_type == DEVICE_TYPE_AIRPURIFIER:
-                    for description in AIRPURIFIER_SELECTS:
-                        if description.key in status:
-                            entities.extend(
-                                [PanasonicSelect(
-                                    coordinator, device_gwid, device_id, client, info, description)]
-                            )
 
-                if device_type == DEVICE_TYPE_CLIMATE:
-                    for description in CLIMATE_SELECTS:
-                        if description.key in status:
-                            entities.extend(
-                                [PanasonicSelect(
-                                    coordinator, device_gwid, device_id, client, info, description)]
-                            )
-
-                if device_type == DEVICE_TYPE_DEHUMIDIFIER:
-                    for description in DEHUMIDIFIER_SELECTS:
-                        if description.key in status:
-                            entities.extend(
-                                [PanasonicSelect(
-                                    coordinator, device_gwid, device_id, client, info, description)]
-                            )
+                for saa, selects in SAA_SELECTS.items():
+                    if device_type == saa:
+                        for description in selects:
+                            if description.key in status:
+                                entities.extend(
+                                    [PanasonicSelect(
+                                        coordinator, device_gwid, device_id, client, info, description)]
+                                )
 
             if device_type == DEVICE_TYPE_WASHING_MACHINE:
                 for description in WASHING_MACHINE_SELECTS:
@@ -132,7 +114,8 @@ class PanasonicSelect(PanasonicBaseEntity, SelectEntity):
             self._range = rng
             return list(rng.keys())
         for idx in range(self.entity_description.options):
-            self._range[self.entity_description.options[idx]] = self.entity_description.options_value.index(idx)
+            option = self.entity_description.options[idx]
+            self._range[option] = self.entity_description.options_value.index(idx)
         return self.entity_description.options
 
     @property

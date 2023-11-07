@@ -17,7 +17,7 @@ This project is forked from [Osk2's](https://github.com/osk2) [panasonic_smart_a
 ## Note
 
 1. This integration only support the latest version of Panasonic IoT module, please use the latest version of IoT module.
-2. The code was refacotred, so it is still in draft and currently only support Clmate, Washing Machine and Dehumidifier.
+2. The code was refacotred, so it is still in draft and currently only support Clmate, Washing Machine, Fridge and Dehumidifier.
 
 # Installation
 

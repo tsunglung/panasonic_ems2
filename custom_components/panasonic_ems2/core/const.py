@@ -77,15 +77,16 @@ CONF_REFRESH_TOKEN_TIMEOUT = "refresh_token_timeout"
 DEFAULT_UPDATE_INTERVAL = 120
 REQUEST_TIMEOUT = 15
 
+DATA_CLIENT = "client"
+DATA_COORDINATOR = "coordinator"
+UPDATE_LISTENER = "update_listener"
+
 DEVICE_TYPE_CLIMATE = 1
+DEVICE_TYPE_FRIDGE = 2
 DEVICE_TYPE_WASHING_MACHINE = 3
 DEVICE_TYPE_DEHUMIDIFIER = 4
 DEVICE_TYPE_AIRPURIFIER = 8
 DEVICE_TYPE_FAN = 15
-
-DATA_CLIENT = "client"
-DATA_COORDINATOR = "coordinator"
-UPDATE_LISTENER = "update_listener"
 
 AIRPURIFIER_OPERATING_MODE = "0x01"
 AIRPURIFIER_TIMER_ON = "0x02"
@@ -197,20 +198,6 @@ CLIMATE_NOT_SUPPORT_COMMANDS = [
                 CLIMATE_61
             ]
 
-FAN_POWER = "0x00"
-FAN_OPERATING_MODE = "0x01"
-FAN_SPEED = "0x02"
-FAN_TEMPERATURE_INDOOR = "0x03"
-FAN_OSCILLATE = "0x05"
-
-FAN_PRESET_MODES = {
-    "mode 1": 0,
-    "mode 2": 1,
-    "mode 3": 2,
-    "mode 4": 3,
-    "mode 5": 4
-}
-
 DEHUMIDIFIER_POWER = "0x00"
 DEHUMIDIFIER_MODE = "0x01"
 DEHUMIDIFIER_TIMER_OFF = "0x02"
@@ -237,11 +224,43 @@ DEHUMIDIFIER_DEFAULT_MODES = {
     "Cloth Dry": 3
 }
 
+FAN_POWER = "0x00"
+FAN_OPERATING_MODE = "0x01"
+FAN_SPEED = "0x02"
+FAN_TEMPERATURE_INDOOR = "0x03"
+FAN_OSCILLATE = "0x05"
+
+FAN_PRESET_MODES = {
+    "mode 1": 0,
+    "mode 2": 1,
+    "mode 3": 2,
+    "mode 4": 3,
+    "mode 5": 4
+}
+
+FRIDGE_FREEZER_MODE = "0x00"
+FRIDGE_CHAMBER_MODE = "0x01"
+FRIDGE_FREEZER_TEMPERATURE = "0x03"
+FRIDGE_CHAMBER_TEMPERATURE = "0x05"
+FRIDGE_ECO = "0x0C"
+FRIDGE_ERROR_CODE = "0x0E"
+FRIDGE_ENERGY = "0x13"
+FRIDGE_DEFROST_SETTING = "0x50"
+FRIDGE_STOP_ICE_MAKING = "0x52"
+FRIDGE_FAST_ICE_MAKING = "0x53"
+FRIDGE_FRESH_QUICK_FREZZE = "0x56"
+FRIDGE_THAW_MODE = "0x57"
+FRIDGE_THAW_TEMPERATURE = "0x58"
+FRIDGE_WINTER_MDOE = "0x5A"
+FRIDGE_SHOPPING_MODE = "0x5B"
+FRIDGE_GO_OUT_MODE = "0x5C"
+FRIDGE_NANOEX = "0x61"
+
 WASHING_MACHINE_MODELS = ["HDH"]
 
 WASHING_MACHINE_POWER = "0x00"
 WASHING_MACHINE_ENABLE = "0x01"
-WASHING_MACHINE_REMAING_WAHS_TIME= "0x13"
+WASHING_MACHINE_REMAING_WASH_TIME= "0x13"
 WASHING_MACHINE_TIMER = "0x14"
 WASHING_MACHINE_TIMER_REMAINING_TIME = "0x15"
 WASHING_MACHINE_ERROR_CODE = "0x19"
@@ -297,10 +316,29 @@ COMMANDS_TYPE= {
         DEHUMIDIFIER_PM25,
         DEHUMIDIFIER_TIMER_ON
     ],
+    str(DEVICE_TYPE_FRIDGE): [
+        FRIDGE_FREEZER_MODE,
+        FRIDGE_CHAMBER_MODE,
+        FRIDGE_FREEZER_TEMPERATURE,
+        FRIDGE_CHAMBER_TEMPERATURE,
+        FRIDGE_ECO,
+#        FRIDGE_ERROR_CODE,
+        FRIDGE_ENERGY,
+        FRIDGE_DEFROST_SETTING,
+        FRIDGE_STOP_ICE_MAKING,
+        FRIDGE_FAST_ICE_MAKING,
+        FRIDGE_FRESH_QUICK_FREZZE,
+        FRIDGE_THAW_MODE,
+        FRIDGE_THAW_TEMPERATURE,
+        FRIDGE_WINTER_MDOE,
+        FRIDGE_SHOPPING_MODE,
+        FRIDGE_GO_OUT_MODE,
+        FRIDGE_NANOEX
+    ],
     str(DEVICE_TYPE_WASHING_MACHINE): [
 #        WASHING_MACHINE_POWER,
         WASHING_MACHINE_ENABLE,
-        WASHING_MACHINE_REMAING_WAHS_TIME,
+        WASHING_MACHINE_REMAING_WASH_TIME,
         WASHING_MACHINE_TIMER,
         WASHING_MACHINE_TIMER_REMAINING_TIME,
         WASHING_MACHINE_ENERGY,
@@ -534,6 +572,33 @@ DEHUMIDIFIER_SELECTS: tuple[PanasonicSelectDescription, ...] = (
     )
 )
 
+FRIDGE_SELECTS: tuple[PanasonicSelectDescription, ...] = (
+    PanasonicSelectDescription(
+        key=FRIDGE_FREEZER_MODE,
+        name="Freezer mode",
+        entity_category=EntityCategory.CONFIG,
+        icon='mdi:fridge-top',
+        options=["Weak", "Medium", "Strong"],
+        options_value=["0", "2", "4"],
+    ),
+    PanasonicSelectDescription(
+        key=FRIDGE_CHAMBER_MODE,
+        name="Chamber Mode",
+        entity_category=EntityCategory.CONFIG,
+        icon='mdi:fridge-bottom',
+        options=["Weak", "Medium", "Strong"],
+        options_value=["0", "2", "4"],
+    ),
+    PanasonicSelectDescription(
+        key=FRIDGE_THAW_MODE,
+        name="Thaw Mode",
+        entity_category=EntityCategory.CONFIG,
+        icon='mdi:fridge-outline',
+        options=["Weak", "Medium", "Strong"],
+        options_value=["0", "2", "4"],
+    )
+)
+
 WASHING_MACHINE_SELECTS: tuple[PanasonicSelectDescription, ...] = (
     PanasonicSelectDescription(
         key=WASHING_MACHINE_PROGRESS,
@@ -588,7 +653,7 @@ AIRPURIFIER_SENSORS: tuple[PanasonicSensorDescription, ...] = (
 CLIMATE_SENSORS: tuple[PanasonicSensorDescription, ...] = (
     PanasonicSensorDescription(
         key=CLIMATE_TEMPERATURE_INDOOR,
-        name="Inside temperature",
+        name="Inside Temperature",
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         state_class=SensorStateClass.MEASUREMENT,
         device_class=SensorDeviceClass.TEMPERATURE,
@@ -601,7 +666,7 @@ CLIMATE_SENSORS: tuple[PanasonicSensorDescription, ...] = (
     ),
     PanasonicSensorDescription(
         key=CLIMATE_TEMPERATURE_OUTDOOR,
-        name="Outside temperature",
+        name="Outside Temperature",
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         state_class=SensorStateClass.MEASUREMENT,
         device_class=SensorDeviceClass.TEMPERATURE,
@@ -622,7 +687,7 @@ CLIMATE_SENSORS: tuple[PanasonicSensorDescription, ...] = (
         state_class=SensorStateClass.TOTAL_INCREASING,
         device_class=SensorDeviceClass.ENERGY,
         icon="mdi:flash"
-    ),
+    )
 )
 
 DEHUMIDIFIER_SENSORS: tuple[PanasonicSensorDescription, ...] = (
@@ -657,10 +722,52 @@ DEHUMIDIFIER_SENSORS: tuple[PanasonicSensorDescription, ...] = (
     )
 )
 
+FRIDGE_SENSORS: tuple[PanasonicSensorDescription, ...] = (
+    PanasonicSensorDescription(
+        key=FRIDGE_FREEZER_TEMPERATURE,
+        name="Freezer Temperature",
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        icon='mdi:fridge-top'
+    ),
+    PanasonicSensorDescription(
+        key=FRIDGE_CHAMBER_TEMPERATURE,
+        name="Chamber Temperature",
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        icon="mdi:fridge-bottom"
+    ),
+    PanasonicSensorDescription(
+        key=FRIDGE_ENERGY,
+        name="Energy",
+        native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        device_class=SensorDeviceClass.ENERGY,
+        icon="mdi:flash"
+    ),
+    PanasonicSensorDescription(
+        key=FRIDGE_THAW_TEMPERATURE,
+        name="Thaw Temperature",
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        icon="mdi:fridge-outline"
+    )
+)
+
 WASHING_MACHINE_SENSORS: tuple[PanasonicSensorDescription, ...] = (
     PanasonicSensorDescription(
-        key=WASHING_MACHINE_TIMER_REMAINING_TIME,
+        key=WASHING_MACHINE_REMAING_WASH_TIME,
         name="Washing Remaining Time",
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfTime.MINUTES,
+        icon="mdi:clock"
+    ),
+    PanasonicSensorDescription(
+        key=WASHING_MACHINE_TIMER_REMAINING_TIME,
+        name="Timer Remaining Time",
         state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement=UnitOfTime.MINUTES,
         icon="mdi:clock-outline"
@@ -761,6 +868,57 @@ DEHUMIDIFIER_SWITCHES: tuple[PanasonicSwitchDescription, ...] = (
     )
 )
 
+FRIDGE_SWITCHES: tuple[PanasonicSwitchDescription, ...] = (
+    PanasonicSwitchDescription(
+        key=FRIDGE_DEFROST_SETTING,
+        name=" nanoe™ X",
+        device_class=SwitchDeviceClass.SWITCH,
+        icon='mdi:snowflake-melt'
+    ),
+    PanasonicSwitchDescription(
+        key=FRIDGE_ECO,
+        name="ECO",
+        device_class=SwitchDeviceClass.SWITCH,
+        icon='mdi:sprout'
+    ),
+    PanasonicSwitchDescription(
+        key=FRIDGE_NANOEX,
+        name=" nanoe™ X",
+        device_class=SwitchDeviceClass.SWITCH,
+        icon='mdi:atom-variant'
+    ),
+    PanasonicSwitchDescription(
+        key=FRIDGE_FAST_ICE_MAKING,
+        name="Fast Ice Making",
+        device_class=SwitchDeviceClass.SWITCH,
+        icon='mdi:snowflake'
+    ),
+    PanasonicSwitchDescription(
+        key=FRIDGE_FRESH_QUICK_FREZZE,
+        name="Fresh Quick Freeze",
+        device_class=SwitchDeviceClass.SWITCH,
+        icon='mdi:snowflake-check'
+    ),
+    PanasonicSwitchDescription(
+        key=FRIDGE_WINTER_MDOE,
+        name="Winter Mode",
+        device_class=SwitchDeviceClass.SWITCH,
+        icon='mdi:snowman'
+    ),
+    PanasonicSwitchDescription(
+        key=FRIDGE_SHOPPING_MODE,
+        name="Shopping Mode",
+        device_class=SwitchDeviceClass.SWITCH,
+        icon='mdi:shopping'
+    ),
+    PanasonicSwitchDescription(
+        key=FRIDGE_GO_OUT_MODE,
+        name="Go Out Mode",
+        device_class=SwitchDeviceClass.SWITCH,
+        icon='mdi:logout'
+    )
+)
+
 WASHING_MACHINE_SWITCHES: tuple[PanasonicSwitchDescription, ...] = (
     PanasonicSwitchDescription(
         key=WASHING_MACHINE_ENABLE,
@@ -775,3 +933,29 @@ WASHING_MACHINE_SWITCHES: tuple[PanasonicSwitchDescription, ...] = (
         icon='mdi:heat-wave'
     )
 )
+
+SAA_NUMBERS = {
+    DEVICE_TYPE_CLIMATE: CLIMATE_NUMBERS,
+    DEVICE_TYPE_DEHUMIDIFIER: DEHUMIDIFIER_NUMBERS,
+}
+
+SAA_SELECTS = {
+    DEVICE_TYPE_AIRPURIFIER: AIRPURIFIER_SELECTS,
+    DEVICE_TYPE_CLIMATE: CLIMATE_SELECTS,
+    DEVICE_TYPE_DEHUMIDIFIER: DEHUMIDIFIER_SELECTS,
+    DEVICE_TYPE_FRIDGE: FRIDGE_SELECTS
+}
+
+SAA_SENSORS = {
+    DEVICE_TYPE_AIRPURIFIER: AIRPURIFIER_SENSORS,
+    DEVICE_TYPE_CLIMATE: CLIMATE_SENSORS,
+    DEVICE_TYPE_DEHUMIDIFIER: DEHUMIDIFIER_SENSORS,
+    DEVICE_TYPE_FRIDGE: FRIDGE_SENSORS
+}
+
+SAA_SWITCHES = {
+    DEVICE_TYPE_AIRPURIFIER: AIRPURIFIER_SWITCHES,
+    DEVICE_TYPE_CLIMATE: CLIMATE_SWITCHES,
+    DEVICE_TYPE_DEHUMIDIFIER: DEHUMIDIFIER_SWITCHES,
+    DEVICE_TYPE_FRIDGE: FRIDGE_SWITCHES
+}

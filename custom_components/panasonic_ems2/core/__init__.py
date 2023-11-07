@@ -31,7 +31,12 @@ from .const import (
     WASHING_MACHINE_MODELS,
     WASHING_MACHINE_OPERATING_STATUS,
     DEVICE_TYPE_CLIMATE,
+    DEVICE_TYPE_WASHING_MACHINE,
     SET_COMMAND_TYPE,
+    CLIMATE_PM25,
+    WASHING_MACHINE_PROGRESS,
+    FRIDGE_FREEZER_TEMPERATURE,
+    FRIDGE_THAW_TEMPERATURE,
     HA_USER_AGENT,
     REQUEST_TIMEOUT
 )
@@ -217,17 +222,26 @@ class PanasonicSmartHome(object):
         some workaround on info
         """
         try:
-            if ((model_type == "RX-N" or model_type == "PX") and
-                    command_type == "0x37" and
+            if ((model_type in ["RX-N", "PX"]) and
+                    command_type == CLIMATE_PM25 and
                     int(status) == 65535
                 ):
                 new = -1
-            elif (model_type == "HDH" and
-                    command_type == "0x64"):
+            elif (model_type in ["HDH"] and
+                    command_type == WASHING_MACHINE_PROGRESS):
                 if new >= 19:
                     new = int(status) - 250
+                    if new >= 19:
+                        new = int(new) - 500
                 else:
                     new = int(status)
+            elif (model_type in ["XGS"] and
+                    command_type in [
+                        FRIDGE_FREEZER_TEMPERATURE,
+                        FRIDGE_THAW_TEMPERATURE
+                    ]
+                ):
+                new = int(status) - 255
             else:
                 new = int(status)
         except:
@@ -419,7 +433,10 @@ class PanasonicSmartHome(object):
                     if info.get("CommandType", "") == "0x00":
                         status = info["Status"]
                         break
-                    if info.get("CommandType", "") == "0x50":
+                    if info.get("CommandType", "") == "0x50": # Washing Machine
+                        status = info["Status"]
+                        break
+                    if info.get("CommandType", "") == "0x65": # Fridge
                         status = info["Status"]
                         break
                 gwid_status[gwid] = status
@@ -430,10 +447,12 @@ class PanasonicSmartHome(object):
             if gwid not in self._devices_info:
                 # _LOGGER.warning(f"gwid not in self._devices_info!")
                 self._devices_info[gwid] = device
+                gwid_status[gwid] = "force update"
             if len(gwid_status[gwid]) < 1:
                 # No status code, it maybe offline or power off of washing machine or network busy
                 # _LOGGER.warning(f"gwid {gwid} is offline {self._devices_info[gwid]}!")
-                self._devices_info[gwid]["Information"] = self._offline_info(device_type)
+                if device_type in [DEVICE_TYPE_WASHING_MACHINE]:
+                    self._devices_info[gwid]["Information"] = self._offline_info(device_type)
                 continue
             if not self.is_supported(device["ModelType"]):
                 continue

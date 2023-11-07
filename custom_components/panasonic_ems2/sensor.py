@@ -12,19 +12,16 @@ from .core.const import (
     DOMAIN,
     DATA_CLIENT,
     DATA_COORDINATOR,
-    DEVICE_TYPE_AIRPURIFIER,
-    DEVICE_TYPE_CLIMATE,
-    DEVICE_TYPE_DEHUMIDIFIER,
+    SAA_SENSORS,
     DEVICE_TYPE_WASHING_MACHINE,
-    AIRPURIFIER_SENSORS,
-    CLIMATE_SENSORS,
-    DEHUMIDIFIER_SENSORS,
+    DEVICE_TYPE_FRIDGE,
     WASHING_MACHINE_SENSORS,
     PanasonicSensorDescription
 )
 SCAN_INTERVAL = timedelta(seconds=60)
 
 _LOGGER = logging.getLogger(__name__)
+
 
 async def async_setup_entry(hass, entry, async_add_entities) -> bool:
     client = hass.data[DOMAIN][entry.entry_id][DATA_CLIENT]
@@ -41,29 +38,15 @@ async def async_setup_entry(hass, entry, async_add_entities) -> bool:
             for dev in info.get("Information", {}):
                 device_id = dev["DeviceID"]
                 status = dev["status"]
-                if device_type == DEVICE_TYPE_AIRPURIFIER:
-                    for description in AIRPURIFIER_SENSORS:
-                        if description.key in status:
-                            entities.extend(
-                                [PanasonicSensor(
-                                    coordinator, device_gwid, device_id, client, info, description)]
-                            )
 
-                if device_type == DEVICE_TYPE_CLIMATE:
-                    for description in CLIMATE_SENSORS:
-                        if description.key in status:
-                            entities.extend(
-                                [PanasonicSensor(
-                                    coordinator, device_gwid, device_id, client, info, description)]
-                            )
-
-                if device_type == DEVICE_TYPE_DEHUMIDIFIER:
-                    for description in DEHUMIDIFIER_SENSORS:
-                        if description.key in status:
-                            entities.extend(
-                                [PanasonicSensor(
-                                    coordinator, device_gwid, device_id, client, info, description)]
-                            )
+                for saa, sensors in SAA_SENSORS.items():
+                    if device_type == saa:
+                        for description in sensors:
+                            if description.key in status:
+                                entities.extend(
+                                    [PanasonicSensor(
+                                        coordinator, device_gwid, device_id, client, info, description)]
+                                )
 
             if device_type == DEVICE_TYPE_WASHING_MACHINE:
                 for description in WASHING_MACHINE_SENSORS:
@@ -134,9 +117,11 @@ class PanasonicSensor(PanasonicBaseEntity, SensorEntity):
                 return get_key_from_dict(rng, int(value))
             return value
         value = status.get(self.entity_description.key, None)
-        if self.entity_description.device_class == SensorDeviceClass.TEMPERATURE:
-            if value < 1 or value > 50:
-                return None
+        device_type = int(self.info.get("DeviceType"))
+        if device_type != DEVICE_TYPE_FRIDGE:
+            if self.entity_description.device_class == SensorDeviceClass.TEMPERATURE:
+                if value < -1 or value > 50:
+                    return None
         if self.entity_description.device_class == SensorDeviceClass.HUMIDITY:
             if value < 30:
                 return None
