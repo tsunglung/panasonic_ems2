@@ -329,7 +329,7 @@ class PanasonicSmartHome(object):
         commands_type = []
         cmds = COMMANDS_TYPE.get(str(device_type), cmds_list)
         if (int(device_type) == DEVICE_TYPE_CLIMATE and
-                model_type == "PX"
+                model_type in ["PX"]
             ):
             new_cmds = []
             for cmd in cmds:
@@ -372,7 +372,7 @@ class PanasonicSmartHome(object):
                                 min = para[1] or 0
                             if "Max" == para[0]:
                                 max = para[1] or 1
-                        if max > 100:
+                        if max > 39:
                             parameters[str(min)] = min
                             parameters[str(max)] = max
                         else:
