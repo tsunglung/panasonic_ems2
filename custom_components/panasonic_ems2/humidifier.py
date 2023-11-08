@@ -137,8 +137,11 @@ class PanasonicHumidifier(PanasonicBaseEntity, HumidifierEntity):
         status = self.get_status(self.coordinator.data)
         if status:
             try:
+                rng = self.client.get_range(self.device_gwid, DEHUMIDIFIER_TARGET_HUMIDITY)
+                if len(rng) >= 1:
+                    self._range = rng
                 value = int(status[DEHUMIDIFIER_TARGET_HUMIDITY])
-                return value
+                return int(get_key_from_dict(rng, value).replace("%", ""))
             except:
                 return None
         return None

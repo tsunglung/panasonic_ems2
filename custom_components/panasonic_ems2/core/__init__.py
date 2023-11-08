@@ -34,6 +34,7 @@ from .const import (
     DEVICE_TYPE_WASHING_MACHINE,
     SET_COMMAND_TYPE,
     CLIMATE_PM25,
+    DEHUMIDIFIER_PM25,
     WASHING_MACHINE_PROGRESS,
     FRIDGE_FREEZER_TEMPERATURE,
     FRIDGE_THAW_TEMPERATURE,
@@ -242,6 +243,11 @@ class PanasonicSmartHome(object):
                     ]
                 ):
                 new = int(status) - 255
+            elif ((model_type in ["GXW", "JHW"]) and
+                    command_type == DEHUMIDIFIER_PM25 and
+                    int(status) == 65535
+                ):
+                new = -1
             else:
                 new = int(status)
         except:
