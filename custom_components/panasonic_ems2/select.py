@@ -113,7 +113,7 @@ class PanasonicSelect(PanasonicBaseEntity, SelectEntity):
         if len(rng) >= 1:
             self._range = rng
             return list(rng.keys())
-        for idx in range(self.entity_description.options):
+        for idx in range(len(self.entity_description.options)):
             option = self.entity_description.options[idx]
             self._range[option] = self.entity_description.options_value.index(idx)
         return self.entity_description.options

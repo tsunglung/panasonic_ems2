@@ -27,7 +27,7 @@ from .const import (
     CONF_REFRESH_TOKEN,
     CONF_REFRESH_TOKEN_TIMEOUT,
     COMMANDS_TYPE,
-    CLIMATE_NOT_SUPPORT_COMMANDS,
+    CLIMATE_RX_COMMANDS,
     WASHING_MACHINE_MODELS,
     WASHING_MACHINE_OPERATING_STATUS,
     DEVICE_TYPE_CLIMATE,
@@ -223,7 +223,7 @@ class PanasonicSmartHome(object):
         some workaround on info
         """
         try:
-            if ((model_type in ["RX-N", "PX"]) and
+            if ("RX" in model_type and
                     command_type == CLIMATE_PM25 and
                     int(status) == 65535
                 ):
@@ -329,12 +329,9 @@ class PanasonicSmartHome(object):
         commands_type = []
         cmds = COMMANDS_TYPE.get(str(device_type), cmds_list)
         if (int(device_type) == DEVICE_TYPE_CLIMATE and
-                model_type in ["PX"]
+                "RX" in model_type
             ):
-            new_cmds = []
-            for cmd in cmds:
-                if cmd not in CLIMATE_NOT_SUPPORT_COMMANDS:
-                    new_cmds.append(cmd)
+            new_cmds = cmds + CLIMATE_RX_COMMANDS
         else:
             new_cmds = cmds.copy()
         for cmd in new_cmds:
