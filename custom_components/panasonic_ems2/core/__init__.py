@@ -28,6 +28,8 @@ from .const import (
     CONF_REFRESH_TOKEN_TIMEOUT,
     COMMANDS_TYPE,
     CLIMATE_RX_COMMANDS,
+    DEVICE_TYPE_FRIDGE,
+    FRIDGE_XGS_COMMANDS,
     WASHING_MACHINE_MODELS,
     WASHING_MACHINE_OPERATING_STATUS,
     DEVICE_TYPE_CLIMATE,
@@ -213,8 +215,9 @@ class PanasonicSmartHome(object):
         response = await self.request(
             method="GET", headers=header, endpoint=apis.get_user_devices()
         )
-        self._devices = response.get("GwList", [])
-        self._commands = response.get("CommandList", [])
+        if isinstance(response, dict):
+            self._devices = response.get("GwList", [])
+            self._commands = response.get("CommandList", [])
 
         return self._devices
 
@@ -332,6 +335,10 @@ class PanasonicSmartHome(object):
                 "RX" in model_type
             ):
             new_cmds = cmds + CLIMATE_RX_COMMANDS
+        elif (int(device_type) == DEVICE_TYPE_FRIDGE and
+                    "F65" not in model_type
+                 ):
+            new_cmds = cmds + FRIDGE_XGS_COMMANDS
         else:
             new_cmds = cmds.copy()
         for cmd in new_cmds:
