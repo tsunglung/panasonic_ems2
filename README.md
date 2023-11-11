@@ -17,7 +17,7 @@ This project is forked from [Osk2's](https://github.com/osk2) [panasonic_smart_a
 ## Note
 
 1. This integration only support the latest version of Panasonic IoT module, please use the latest version of IoT module.
-2. The code was refacotred, so it is still in draft and currently only support Clmate, Washing Machine, Fridge and Dehumidifier.
+2. The code was refacotred, so it is still in draft and currently only support Climate, Washing Machine, Fridge and Dehumidifier.
 
 # Installation
 
@@ -38,6 +38,22 @@ Copy `panasonic_ems2` folder of custom_components in this repository to `custom_
    2. If the integration is still not in the list, you need to clear the browser cache.
 2. Enter the Login info (email and password of [Panasonic Cloud](https://club.panasonic.tw/))
 3. Enjoy
+
+# Help to add your Panasonic IoT appliances in this integration
+
+If you do not see any device or entity is not normal after add this integration, your appliances may not corretly supported by this integration.
+You can help to improve this integration via send the information of your appliances to me to debug.
+
+**Method**
+
+1. Download and install [Python](https://www.python.org/downloads/)
+2. Download the script [panasonic_ems2.py](https://github.com/tsunglung/panasonic_ems2/raw/master/scripts/panasonic_ems2.py) to your PC or MacOS
+3. Find the downloaded script, use CMD of Windows or Terminal of MacOS, "cd [your Download Path]"
+4. Run the following command and login your Panasonic Cloud Account.
+```
+python panasonic_ems2.py
+```
+5. There are two files generated. You can find the model info in "panasonic_devices.json" then send the model info and the "panasonic_commands.json" to me or crate a issue.
 
 Buy Me A Coffee
 

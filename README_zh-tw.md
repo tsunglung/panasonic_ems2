@@ -13,7 +13,7 @@ Home Assistant 的 Panasonic IoT TW [Android](https://play.google.com/store/apps
 
 ## 注意
 
-1. 本整合套件僅支援 Panasonic IoT 模組最新版本，請更新 Panasonic IoT 模組的軔體到最新版本。
+1. 本整合套件僅支援 Panasonic IoT 模組最新版本，請更新 Panasonic IoT 模組的韌體到最新版本。
 2. 這套件全新改寫，目前是在初期階段，因此有些許 bugs，歡迎回報。目前也只支援空調，洗衣機，冰箱和除溼機。
 
 # 安裝
@@ -35,6 +35,22 @@ Home Assistant 的 Panasonic IoT TW [Android](https://play.google.com/store/apps
    2. 如果 `Panasonic Smart IoT` 還是沒有出現在清單裡，請清除瀏覽器的快取 (Cache)。
 2. 輸入登入資訊 ([Panasonic Cloud](https://club.panasonic.tw/) 的電子郵件及密碼)
 3. 開始使用。
+
+# 協助加入你的 國際版 IoT 智慧家電到 這個自訂整合
+
+如果，你發現你加入整合後，你的智慧家電在 HA 沒有出現或是有實體不正常。很有可能你的國際版 IoT 智慧家電還沒有被支援完整。
+你可以協助改善這整合，只要簡單幾個步驟把你的國際版 IoT 智慧家電 家電資訊寄給我除錯。
+
+**方法**
+
+1. 下載並安裝 [Python](https://www.python.org/downloads/)
+2. 下載腳本 [panasonic_ems2.py](https://github.com/tsunglung/panasonic_ems2/raw/master/scripts/panasonic_ems2.py) 到你的 Windows 或 MacOS
+3. 找到下載的腳本, 並使用 Windows 的 CMD 或是  macOS 的 Terminal, 切換目錄到下載的路徑 "cd [your Download Path]"
+4. 執行下載的指令並登入你的 Panasonic Cloud 帳號
+```
+python panasonic_ems2.py
+```
+5. 如果登入成功，會有二個檔案產生. 你可以在  "panasonic_devices.json" 找到家電型號資訊，接著把型號資訊以及 "panasonic_commands.json" 提供給我 或是發到 issue.
 
 打賞
 
