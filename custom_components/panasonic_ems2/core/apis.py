@@ -22,6 +22,10 @@ def get_user_devices():
     url = f"{BASE_URL}/UserGetRegisteredGwList2"
     return url
 
+def get_gw_ip():
+    url = f"{BASE_URL}/UserGetGWIP"
+    return url
+
 def post_device_get_info():
     url = f"{BASE_URL}/DeviceGetInfo"
     return url

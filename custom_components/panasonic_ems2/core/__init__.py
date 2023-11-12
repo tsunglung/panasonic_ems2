@@ -142,7 +142,7 @@ class PanasonicSmartHome(object):
             try:
                 res = await response.json()
             except:
-                res = {}
+                res = response.text
         elif response.status == HTTPStatus.BAD_REQUEST:
             raise Ems2ExceedRateLimit
         elif response.status == HTTPStatus.FORBIDDEN:
@@ -160,8 +160,14 @@ class PanasonicSmartHome(object):
         else:
             raise Ems2TokenNotFound
 
+        if isinstance(res, str):
+            return {"data": res}
+
         if isinstance(res, list):
             return {"data": res}
+
+        if isinstance(res, dict):
+            return res
 
         return res
 
@@ -233,6 +239,24 @@ class PanasonicSmartHome(object):
             self._commands = response.get("CommandList", [])
 
         return self._devices
+
+    @api_status
+    async def get_device_ip(self):
+        """
+        Get the ip of devices
+        """
+        idx = 0
+        header = {"CPToken": self._cp_token}
+        for device in self._devices:
+            asyncio.sleep(.5)  # avoid to be banned
+            gwid = device["GWID"]
+            data = {"GWID": gwid}
+            response = await self.request(
+                method="POST", headers=header, data=data, endpoint=apis.get_gw_ip()
+            )
+            if isinstance(response, dict):
+                self._devices[idx]["GWIP"] = response.get("data", None)
+            idx = idx + 1
 
     def _workaround_info(self, model_type: str, command_type: str, status):
         """

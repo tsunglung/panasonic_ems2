@@ -43,7 +43,7 @@ class PanasonicBaseEntity(CoordinatorEntity, ABC):
         """Return the device info."""
         return DeviceInfo(
             identifiers={(DOMAIN, str(self.device_gwid))},
-#            configuration_url="http://{}".format(module.get("local_ip", "")),
+#            configuration_url="http://{}".format(self.info.get("GWIP", "")),
             name=self.info["NickName"],
             manufacturer=f"Panasonic {self.info['ModelType']}",
             model=self.model,

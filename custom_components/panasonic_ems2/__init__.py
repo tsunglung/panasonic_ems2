@@ -70,6 +70,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
             ):
             updated_options[CONF_UPDATE_INTERVAL] = recommand_interval
 
+    # await client.get_device_ip()  # disabled because no help
     hass.config_entries.async_update_entry(
         entry=entry,
         options=updated_options,
