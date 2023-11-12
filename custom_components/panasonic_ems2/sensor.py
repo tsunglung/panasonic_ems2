@@ -126,11 +126,12 @@ class PanasonicSensor(PanasonicBaseEntity, SensorEntity):
             if value < 30:
                 return None
         if self.entity_description.device_class == SensorDeviceClass.ENERGY:
-            if isinstance(value, str):
-                value = float(value.replace("-", ""))
-            value = float(value * 0.1)
-            if value < 1:
-                return None
+            if value is not None:
+                if isinstance(value, str):
+                    value = float(value.replace("-", ""))
+                value = float(value * 0.1)
+                if value < 1:
+                    return None
         return value
 
 #    async def async_update(self):

@@ -30,6 +30,7 @@ from .const import (
     CLIMATE_RX_COMMANDS,
     DEVICE_TYPE_FRIDGE,
     FRIDGE_XGS_COMMANDS,
+    DEVICE_TYPE_DEHUMIDIFIER,
     WASHING_MACHINE_MODELS,
     WASHING_MACHINE_OPERATING_STATUS,
     DEVICE_TYPE_CLIMATE,
@@ -40,6 +41,13 @@ from .const import (
     WASHING_MACHINE_PROGRESS,
     FRIDGE_FREEZER_TEMPERATURE,
     FRIDGE_THAW_TEMPERATURE,
+    USER_INFO_TYPES,
+    DEHUMIDIFIER_MONTHLY_ENERGY,
+    FRIDGE_DOOR_OPENS,
+    FRIDGE_MONTHLY_ENERGY,
+    WASHING_MACHINE_WASH_TIMES,
+    WASHING_MACHINE_MONTHLY_ENERGY,
+    WASHING_MACHINE_WATER_USED,
     HA_USER_AGENT,
     REQUEST_TIMEOUT
 )
@@ -63,6 +71,8 @@ def api_status(func):
         except Ems2TooManyRequest:
             await asyncio.sleep(2)
             return await func(*args, **kwargs)
+        except Ems2Expectation:
+            return args[0]._devices_info
         except (
             Exception,
         ) as e:
@@ -144,6 +154,9 @@ class PanasonicSmartHome(object):
         elif response.status == HTTPStatus.NOT_FOUND:
             _LOGGER.warning(f"Use wrong method or parameters")
             res = {}
+        elif response.status == HTTPStatus.METHOD_NOT_ALLOWED:
+            _LOGGER.warning(f"The method is not allowed")
+            res = {}
         else:
             raise Ems2TokenNotFound
 
@@ -169,7 +182,7 @@ class PanasonicSmartHome(object):
         """
         data = {"MemId": self.email, "PW": self.password, "AppToken": APP_TOKEN}
         response = await self.request(
-            method="POST", headers={}, endpoint=apis.open_session(), data=data
+            method="POST", headers={}, data=data, endpoint=apis.open_session()
         )
         self._cp_token = response.get("CPToken", "")
         self._refresh_token = response.get("RefreshToken", "")
@@ -187,7 +200,7 @@ class PanasonicSmartHome(object):
 
         data = {"RefreshToken": self._refresh_token}
         response = await self.request(
-            method="POST", headers={}, endpoint=apis.refresh_token(), data=data
+            method="POST", headers={}, data=data, endpoint=apis.refresh_token()
         )
         self._cp_token = response.get("CPToken", "")
         self._refresh_token = response.get("RefreshToken", "")
@@ -202,7 +215,7 @@ class PanasonicSmartHome(object):
         """
         data = {}
         await self.request(
-            method="POST", headers={}, endpoint=apis.close_session(), data=data
+            method="POST", headers={}, data=data, endpoint=apis.close_session()
         )
 
     @api_status
@@ -306,7 +319,7 @@ class PanasonicSmartHome(object):
                     {"CommandTypes": func, "DeviceID": device_id}
                 )
         response = await self.request(
-            method="POST", headers=header, endpoint=apis.post_device_get_info(), data=data
+            method="POST", headers=header, data=data, endpoint=apis.post_device_get_info()
         )
 
         info = []
@@ -410,11 +423,54 @@ class PanasonicSmartHome(object):
         return [{'DeviceID': 1, 'status': status}]
 
     def is_supported(self, model_type: str):
-        """_summary_
+        """is model type supported
 
         Args:
             model_type (str): return True if supported
         """
+
+        return True
+
+    @api_status
+    async def get_user_info(self):
+        """ get user info
+
+        Returns:
+            bool: is user info got
+        """
+        header = {"CPToken": self._cp_token}
+        data = {
+            "name": "",
+            "from": datetime.today().replace(day=1).strftime("%Y/%m/%d"),
+            "unit": "day",
+            "max_num": 31,
+        }
+        for info in USER_INFO_TYPES:
+            data["name"] = info
+            response = await self.request(
+                method="POST", headers=header, data=data, endpoint=apis.get_user_info()
+            )
+
+            if "GwList" not in response:
+                return False
+            for gwinfo in response["GwList"]:
+                gwid = gwinfo["GwID"]
+                if "Information" not in self._devices_info[gwid]:
+                    continue
+                device_type = self._devices_info[gwid]["DeviceType"]
+                if info == "Other":
+                    if device_type == str(DEVICE_TYPE_FRIDGE):
+                        self._devices_info[gwid]["Information"][0]["status"][FRIDGE_DOOR_OPENS] = gwinfo["Ref_OpenDoor_Total"]
+                    if device_type == str(DEVICE_TYPE_WASHING_MACHINE):
+                        self._devices_info[gwid]["Information"][0]["status"][WASHING_MACHINE_WASH_TIMES] = gwinfo["WM_WashTime_Total"]
+                        self._devices_info[gwid]["Information"][0]["status"][WASHING_MACHINE_WATER_USED] = gwinfo["WM_WaterUsed_Total"]
+                if info == "Power":
+                    if device_type == str(DEVICE_TYPE_DEHUMIDIFIER):
+                        self._devices_info[gwid]["Information"][0]["status"][DEHUMIDIFIER_MONTHLY_ENERGY] = gwinfo["Total_kwh"]
+                    if device_type == str(DEVICE_TYPE_FRIDGE):
+                        self._devices_info[gwid]["Information"][0]["status"][FRIDGE_MONTHLY_ENERGY] = gwinfo["Total_kwh"]
+                    if device_type == str(DEVICE_TYPE_WASHING_MACHINE):
+                        self._devices_info[gwid]["Information"][0]["status"][WASHING_MACHINE_MONTHLY_ENERGY] = gwinfo["Total_kwh"]
 
         return True
 
@@ -461,7 +517,7 @@ class PanasonicSmartHome(object):
             if len(gwid_status[gwid]) < 1:
                 # No status code, it maybe offline or power off of washing machine or network busy
                 # _LOGGER.warning(f"gwid {gwid} is offline {self._devices_info[gwid]}!")
-                if device_type in [DEVICE_TYPE_WASHING_MACHINE]:
+                if device_type in [str(DEVICE_TYPE_WASHING_MACHINE)]:
                     self._devices_info[gwid]["Information"] = self._offline_info(device_type)
                 continue
             if not self.is_supported(device["ModelType"]):
@@ -472,6 +528,7 @@ class PanasonicSmartHome(object):
             )
             await asyncio.sleep(.1)
             await self.get_device_with_info(device, command_types)
+        await self.get_user_info()
         return self._devices_info
 
     @api_status

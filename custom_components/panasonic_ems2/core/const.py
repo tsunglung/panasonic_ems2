@@ -45,7 +45,8 @@ from homeassistant.const import (
     PERCENTAGE,
     UnitOfEnergy,
     UnitOfTemperature,
-    UnitOfTime
+    UnitOfTime,
+    UnitOfVolume
 )
 
 DOMAIN = "panasonic_ems2"
@@ -81,6 +82,14 @@ DATA_CLIENT = "client"
 DATA_COORDINATOR = "coordinator"
 UPDATE_LISTENER = "update_listener"
 
+USER_INFO_TYPES = [
+#    "Power",
+#    "Temp",
+#    "Humid",
+#    "PM",
+    "Other"
+]
+
 DEVICE_TYPE_CLIMATE = 1
 DEVICE_TYPE_FRIDGE = 2
 DEVICE_TYPE_WASHING_MACHINE = 3
@@ -99,6 +108,7 @@ AIRPURIFIER_PM25 = "0x61"
 AIRPURIFIER_LIGHT = "0x62"
 AIRPURIFIER_RUNNING_TIME = "0x63"
 AIRPURIFIER_RESERVED = "0x7F"
+AIRPURIFIER_MONTHLY_ENERGY = "0xA0"  # alternative
 
 AIRPURIFIER_NANOEX_PRESET = "nanoe™ X"
 AIRPURIFIER_PRESET_MODES = {
@@ -181,6 +191,7 @@ CLIMATE_61 = "0x61"
 CLIMATE_RESERVED = "0x7F"
 CLIMATE_PRESET_MODE = "0x80"
 CLIMATE_SWING_MODE = "0x81"
+CLIMATE_MONTHLY_ENERGY = "0xA0"  # alternative
 
 CLIMATE_AVAILABLE_PRESET_MODES = {
     CLIMATE_ACTIVITY: PRESET_ACTIVITY,
@@ -213,6 +224,7 @@ DEHUMIDIFIER_ENERGY = "0x1D"
 DEHUMIDIFIER_50 = "0x50"
 DEHUMIDIFIER_PM25 = "0x53"
 DEHUMIDIFIER_TIMER_ON = "0x55"
+DEHUMIDIFIER_MONTHLY_ENERGY = "0xA0"  # alternative
 
 DEHUMIDIFIER_MAX_HUMIDITY = 70
 DEHUMIDIFIER_MIN_HUMIDITY = 40
@@ -255,6 +267,9 @@ FRIDGE_WINTER_MDOE = "0x5A"
 FRIDGE_SHOPPING_MODE = "0x5B"
 FRIDGE_GO_OUT_MODE = "0x5C"
 FRIDGE_NANOEX = "0x61"
+FRIDGE_63 = "0x63"
+FRIDGE_MONTHLY_ENERGY = "0xA0"  # alternative
+FRIDGE_DOOR_OPENS = "0xA1"  # alternative
 
 FRIDGE_XGS_COMMANDS = [
                 FRIDGE_ECO,
@@ -280,6 +295,9 @@ WASHING_MACHINE_CURRENT_PROGRESS = "0x55"
 WASHING_MACHINE_DELAY_DRYING = "0x61"
 WASHING_MACHINE_PROGRESS = "0x64"
 WASHING_MACHINE_WARM_WATER = "0x69"
+WASHING_MACHINE_MONTHLY_ENERGY = "0xA0"  # alternative
+WASHING_MACHINE_WASH_TIMES = "0xA1"  # alternative
+WASHING_MACHINE_WATER_USED = "0xA2"   # alternative
 
 COMMANDS_TYPE= {
     str(DEVICE_TYPE_CLIMATE): [
@@ -752,7 +770,20 @@ FRIDGE_SENSORS: tuple[PanasonicSensorDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         device_class=SensorDeviceClass.TEMPERATURE,
         icon="mdi:fridge-outline"
-    )
+    ),
+    PanasonicSensorDescription(
+        key=FRIDGE_DOOR_OPENS,
+        name="Monthly Door Open Times",
+        icon="mdi:information-slab-symbol"
+    ),
+    PanasonicSensorDescription(
+        key=FRIDGE_MONTHLY_ENERGY,
+        name="Monthly Energy",
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        device_class=SensorDeviceClass.ENERGY,
+        icon="mdi:flash"
+    ),
 )
 
 WASHING_MACHINE_SENSORS: tuple[PanasonicSensorDescription, ...] = (
@@ -792,6 +823,26 @@ WASHING_MACHINE_SENSORS: tuple[PanasonicSensorDescription, ...] = (
         name="Operating Status",
         device_class=SensorDeviceClass.ENUM,
         icon="mdi:washing-machine"
+    ),
+    PanasonicSensorDescription(
+        key=WASHING_MACHINE_WASH_TIMES,
+        name="Monthly Washing Times",
+        icon="mdi:information-slab-symbol"
+    ),
+    PanasonicSensorDescription(
+        key=WASHING_MACHINE_WATER_USED,
+        name="Monthly Used Water",
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfVolume.LITERS,
+        icon="mdi:water"
+    ),
+    PanasonicSensorDescription(
+        key=WASHING_MACHINE_MONTHLY_ENERGY,
+        name="Monthly Energy",
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        device_class=SensorDeviceClass.ENERGY,
+        icon="mdi:flash"
     )
 )
 

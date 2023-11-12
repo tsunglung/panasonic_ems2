@@ -14,6 +14,10 @@ def refresh_token():
     url = f"{BASE_URL}/RefreshToken1"
     return url
 
+def get_user_info():
+    url = f"{BASE_URL}/UserGetInfo"
+    return url
+
 def get_user_devices():
     url = f"{BASE_URL}/UserGetRegisteredGwList2"
     return url
