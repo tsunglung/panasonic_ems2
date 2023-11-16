@@ -157,6 +157,9 @@ class PanasonicSmartHome(object):
         elif response.status == HTTPStatus.METHOD_NOT_ALLOWED:
             _LOGGER.warning(f"The method is not allowed")
             res = {}
+        elif response.status == 429:
+            _LOGGER.warning(f"Wrong")
+            res = {}
         else:
             raise Ems2TokenNotFound
 
@@ -270,7 +273,7 @@ class PanasonicSmartHome(object):
                 new = -1
             elif (model_type in ["HDH"] and
                     command_type == WASHING_MACHINE_PROGRESS):
-                if new >= 19:
+                if int(status) >= 19:
                     new = int(status) - 250
                     if new >= 19:
                         new = int(new) - 500

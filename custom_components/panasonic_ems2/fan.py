@@ -83,7 +83,7 @@ class PanasonicFan(PanasonicBaseEntity, FanEntity):
         info,
     ):
         super().__init__(coordinator, device_gwid, device_id, client, info)
-        device_type = info.get("DeviceType", None)
+        device_type = int(info.get("DeviceType", 0))
         self._attr_speed_count = 100
         if device_type == DEVICE_TYPE_FAN:
             self._attr_speed_count = 15
@@ -102,16 +102,16 @@ class PanasonicFan(PanasonicBaseEntity, FanEntity):
         feature = SUPPORT_SET_SPEED
         status = self.get_status(self.coordinator.data)
 
+        if self._device_type == DEVICE_TYPE_AIRPURIFIER:
+            if status.get(AIRPURIFIER_NANOEX, None) is not None:
+                feature |= SUPPORT_PRESET_MODE
+
         if self._device_type == DEVICE_TYPE_FAN:
             if status.get(FAN_OPERATING_MODE, None) is not None:
                 feature |= SUPPORT_PRESET_MODE
 
             if status.get(FAN_OSCILLATE, None) is not None:
                 feature |= SUPPORT_OSCILLATE
-
-        if self._device_type == DEVICE_TYPE_AIRPURIFIER:
-            if status.get(AIRPURIFIER_NANOEX, None) is not None:
-                feature |= SUPPORT_PRESET_MODE
 
         if self._device_type == DEVICE_TYPE_WASHING_MACHINE:
             feature |= SUPPORT_PRESET_MODE
@@ -196,7 +196,6 @@ class PanasonicFan(PanasonicBaseEntity, FanEntity):
                 if key in status and status[key]:
                     preset_mode = mode
                     break
-
         return preset_mode
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:

@@ -95,6 +95,7 @@ DEVICE_TYPE_FRIDGE = 2
 DEVICE_TYPE_WASHING_MACHINE = 3
 DEVICE_TYPE_DEHUMIDIFIER = 4
 DEVICE_TYPE_AIRPURIFIER = 8
+DEVICE_TYPE_ERV = 14
 DEVICE_TYPE_FAN = 15
 
 AIRPURIFIER_OPERATING_MODE = "0x01"
@@ -217,6 +218,7 @@ DEHUMIDIFIER_TARGET_HUMIDITY = "0x04"
 DEHUMIDIFIER_HUMIDITY_INDOOR = "0x07"
 DEHUMIDIFIER_FAN_SPEED = "0x09"
 DEHUMIDIFIER_WATER_TANK_STATUS = "0x0A"
+DEHUMIDIFIER_FILTER_CLEAN = "0x0B"
 DEHUMIDIFIER_AIRFRESH_MODE = "0x0D"
 DEHUMIDIFIER_FAN_MODE = "0x0E"
 DEHUMIDIFIER_BUZZER = "0x18"
@@ -234,6 +236,49 @@ DEHUMIDIFIER_DEFAULT_MODES = {
     "Set": 1,
     "Continuous": 2,
     "Cloth Dry": 3
+}
+
+ERV_POWER = "0x00"
+ERV_OPERATING_MODE = "0x01"
+ERV_FAN_SPEED = "0x02"
+ERV_TARGET_TEMPERATURE = "0x03"
+ERV_TEMPERATURE_IN = "0x04"
+ERV_TEMPERATURE_OUT = "0x05"
+ERV_TIMER_ON = "0x06"
+ERV_ERROR_CODE = "0x09"
+ERV_ENERGY = "0x0E"
+ERV_RESET_FILTER_NOTIFY = "0x14"
+ERV_VENTILATE_MODE = "0x15"
+ERV_PRE_HEAT_COOL = "0x16"
+ERV_REVERED = "0x7F"
+
+ERV_MINIMUM_TEMPERATURE = -128
+ERV_MAXIMUM_TEMPERATURE = 127
+
+ERV_AVAILABLE_MODES = {
+    "Cool": 0,
+    "Dehumidify": 1,
+    "Fan": 2,
+    "Auto": 3,
+    "Heat": 4
+}
+ERV_AVAILABLE_FAN_MODES = {
+    "Auto": 0,
+    "1": 1,
+    "2": 2,
+    "3": 3,
+    "4": 4,
+    "5": 5,
+    "6": 6,
+    "7": 7,
+    "8": 8,
+    "9": 9,
+    "10": 10,
+    "11": 11,
+    "12": 12,
+    "13": 13,
+    "14": 14,
+    "15": 15
 }
 
 FAN_POWER = "0x00"
@@ -299,6 +344,11 @@ WASHING_MACHINE_MONTHLY_ENERGY = "0xA0"  # alternative
 WASHING_MACHINE_WASH_TIMES = "0xA1"  # alternative
 WASHING_MACHINE_WATER_USED = "0xA2"   # alternative
 
+MODEL_JP_TYPES = [
+    "F657",
+    "LX128B"
+]
+
 COMMANDS_TYPE= {
     str(DEVICE_TYPE_CLIMATE): [
         CLIMATE_POWER,
@@ -337,6 +387,16 @@ COMMANDS_TYPE= {
         DEHUMIDIFIER_50,
         DEHUMIDIFIER_PM25,
         DEHUMIDIFIER_TIMER_ON
+    ],
+    str(DEVICE_TYPE_ERV): [
+        ERV_POWER,
+        ERV_OPERATING_MODE,
+        ERV_FAN_SPEED,
+        ERV_TARGET_TEMPERATURE,
+        ERV_TEMPERATURE_IN,
+        ERV_TEMPERATURE_OUT,
+        ERV_ERROR_CODE,
+        ERV_ENERGY
     ],
     str(DEVICE_TYPE_FRIDGE): [
         FRIDGE_FREEZER_MODE,
@@ -498,6 +558,30 @@ DEHUMIDIFIER_NUMBERS: tuple[PanasonicNumberDescription, ...] = (
     )
 )
 
+ERV_NUMBERS: tuple[PanasonicNumberDescription, ...] = (
+    PanasonicNumberDescription(
+        key=ERV_TARGET_TEMPERATURE,
+        name="Target Temperature",
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        entity_category=EntityCategory.CONFIG,
+        icon='mdi:thermometer',
+        native_min_value=-128,
+        native_max_value=127,
+        native_step=1,
+        entity_registry_enabled_default=False
+    ),
+    PanasonicNumberDescription(
+        key=ERV_TIMER_ON,
+        name="Timer On",
+        native_unit_of_measurement=UnitOfTime.MINUTES,
+        entity_category=EntityCategory.CONFIG,
+        icon='mdi:timer-cog',
+        native_min_value=0,
+        native_max_value=1440,
+        native_step=1,
+        entity_registry_enabled_default=False
+    )
+)
 
 @dataclass
 class PanasonicSelectDescription(
@@ -585,6 +669,25 @@ DEHUMIDIFIER_SELECTS: tuple[PanasonicSelectDescription, ...] = (
         icon='mdi:fan-speed-1',
         options=["Fixed", "Down", "Up", "Both", "Side"],
         options_value=["0", "1", "2", "3", "4"]
+    )
+)
+
+ERV_SELECTS: tuple[PanasonicSelectDescription, ...] = (
+    PanasonicSelectDescription(
+        key=ERV_VENTILATE_MODE,
+        name="Ventilate Mode",
+        entity_category=EntityCategory.CONFIG,
+        icon='mdi:broom',
+        options=["Auto", "Ventilate", "Normal"],
+        options_value=["0", "1", "2"],
+    ),
+    PanasonicSelectDescription(
+        key=ERV_PRE_HEAT_COOL,
+        name="Pre Head/Cool",
+        entity_category=EntityCategory.CONFIG,
+        icon='mdi:broom',
+        options=["Disabled", "30min", "60min"],
+        options_value=["0", "1", "2"]
     )
 )
 
@@ -735,6 +838,38 @@ DEHUMIDIFIER_SENSORS: tuple[PanasonicSensorDescription, ...] = (
         key=DEHUMIDIFIER_WATER_TANK_STATUS,
         name="Water Tank",
         icon="mdi:cup-water"
+    )
+)
+
+ERV_SENSORS: tuple[PanasonicSensorDescription, ...] = (
+    PanasonicSensorDescription(
+        key=ERV_TEMPERATURE_IN,
+        name="Temperature In",
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        icon="mdi:thermometer"
+    ),
+    PanasonicSensorDescription(
+        key=ERV_TEMPERATURE_OUT,
+        name="Temperature Outdoor",
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        icon="mdi:thermometer"
+    ),
+    PanasonicSensorDescription(
+        key=ERV_ENERGY,
+        name="Energy",
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        device_class=SensorDeviceClass.ENERGY,
+        icon="mdi:flash"
+    ),
+    PanasonicSensorDescription(
+        key=ERV_ERROR_CODE,
+        name="Error Code",
+        icon="mdi:alert-circle"
     )
 )
 
@@ -986,12 +1121,14 @@ WASHING_MACHINE_SWITCHES: tuple[PanasonicSwitchDescription, ...] = (
 SAA_NUMBERS = {
     DEVICE_TYPE_CLIMATE: CLIMATE_NUMBERS,
     DEVICE_TYPE_DEHUMIDIFIER: DEHUMIDIFIER_NUMBERS,
+    DEVICE_TYPE_ERV: ERV_NUMBERS
 }
 
 SAA_SELECTS = {
     DEVICE_TYPE_AIRPURIFIER: AIRPURIFIER_SELECTS,
     DEVICE_TYPE_CLIMATE: CLIMATE_SELECTS,
     DEVICE_TYPE_DEHUMIDIFIER: DEHUMIDIFIER_SELECTS,
+    DEVICE_TYPE_ERV: ERV_SELECTS,
     DEVICE_TYPE_FRIDGE: FRIDGE_SELECTS
 }
 
@@ -999,6 +1136,7 @@ SAA_SENSORS = {
     DEVICE_TYPE_AIRPURIFIER: AIRPURIFIER_SENSORS,
     DEVICE_TYPE_CLIMATE: CLIMATE_SENSORS,
     DEVICE_TYPE_DEHUMIDIFIER: DEHUMIDIFIER_SENSORS,
+    DEVICE_TYPE_ERV: ERV_SENSORS,
     DEVICE_TYPE_FRIDGE: FRIDGE_SENSORS
 }
 
