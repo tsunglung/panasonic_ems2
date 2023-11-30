@@ -27,12 +27,14 @@ from .const import (
     CONF_REFRESH_TOKEN,
     CONF_REFRESH_TOKEN_TIMEOUT,
     COMMANDS_TYPE,
+    MODEL_JP_TYPES,
     CLIMATE_RX_COMMANDS,
     DEVICE_TYPE_FRIDGE,
     FRIDGE_XGS_COMMANDS,
     DEVICE_TYPE_DEHUMIDIFIER,
     WASHING_MACHINE_MODELS,
     WASHING_MACHINE_OPERATING_STATUS,
+    WASHING_MACHINE_POSTPONE_DRYING,
     DEVICE_TYPE_CLIMATE,
     DEVICE_TYPE_WASHING_MACHINE,
     SET_COMMAND_TYPE,
@@ -135,7 +137,7 @@ class PanasonicSmartHome(object):
             return {}
         except Exception as e:
             # request timeout
-            _LOGGER.error(f" request exception {e}")
+            _LOGGER.error(f"{endpoint} request exception {e}")
             return {}
 
         if response.status == HTTPStatus.OK:
@@ -376,7 +378,7 @@ class PanasonicSmartHome(object):
             ):
             new_cmds = cmds + CLIMATE_RX_COMMANDS
         elif (int(device_type) == DEVICE_TYPE_FRIDGE and
-                    "F65" not in model_type
+                    model_type not in MODEL_JP_TYPES
                  ):
             new_cmds = cmds + FRIDGE_XGS_COMMANDS
         else:
@@ -424,6 +426,11 @@ class PanasonicSmartHome(object):
                                 parameters[str(i)] = i
                         if cmd["ParameterType"] == "rangeA":
                             parameters["Auto"] = 0
+
+                        if model_type in WASHING_MACHINE_MODELS:
+                            if cmd_type == WASHING_MACHINE_POSTPONE_DRYING:
+                                parameters["Off"] = 65535
+
                     cmds_para[cmd_type] = parameters
                     cmds_name[cmd_type] = cmd["CommandName"]
                 cmds.pop("list", None)
@@ -695,7 +702,7 @@ class PanasonicSmartHome(object):
 
         if token_timeout is None:
             token_timeout = "20200101010100"
-        if refresh_token_timeout is None:
+        if refresh_token_timeout is None or len(refresh_token_timeout) < 1:
             refresh_token_timeout = "20200101010100"
 
         now = datetime.now()

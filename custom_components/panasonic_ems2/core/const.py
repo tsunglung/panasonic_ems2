@@ -329,6 +329,8 @@ WASHING_MACHINE_MODELS = ["HDH"]
 
 WASHING_MACHINE_POWER = "0x00"
 WASHING_MACHINE_ENABLE = "0x01"
+WASHING_MACHINE_CURRENT_MODE_OLD = "0x02"
+WASHING_MACHINE_OPERATING_STATUS_OLD = "0x03"
 WASHING_MACHINE_REMAING_WASH_TIME= "0x13"
 WASHING_MACHINE_TIMER = "0x14"
 WASHING_MACHINE_TIMER_REMAINING_TIME = "0x15"
@@ -337,7 +339,7 @@ WASHING_MACHINE_ENERGY = "0x1E"
 WASHING_MACHINE_OPERATING_STATUS = "0x50"
 WASHING_MACHINE_CURRENT_MODE = "0x54"
 WASHING_MACHINE_CURRENT_PROGRESS = "0x55"
-WASHING_MACHINE_DELAY_DRYING = "0x61"
+WASHING_MACHINE_POSTPONE_DRYING = "0x61"
 WASHING_MACHINE_PROGRESS = "0x64"
 WASHING_MACHINE_WARM_WATER = "0x69"
 WASHING_MACHINE_MONTHLY_ENERGY = "0xA0"  # alternative
@@ -415,12 +417,13 @@ COMMANDS_TYPE= {
         WASHING_MACHINE_ENABLE,
         WASHING_MACHINE_REMAING_WASH_TIME,
         WASHING_MACHINE_TIMER,
+        WASHING_MACHINE_ERROR_CODE,
         WASHING_MACHINE_TIMER_REMAINING_TIME,
         WASHING_MACHINE_ENERGY,
         WASHING_MACHINE_OPERATING_STATUS,
         WASHING_MACHINE_CURRENT_MODE,
         WASHING_MACHINE_CURRENT_PROGRESS,
-        WASHING_MACHINE_DELAY_DRYING,
+        WASHING_MACHINE_POSTPONE_DRYING,
         WASHING_MACHINE_PROGRESS,
         WASHING_MACHINE_WARM_WATER
     ],
@@ -734,6 +737,14 @@ WASHING_MACHINE_SELECTS: tuple[PanasonicSelectDescription, ...] = (
         icon='mdi:clock',
         options=["0", "1", "2", "3"],
         options_value=["0", "1", "2", "3"]
+    ),
+    PanasonicSelectDescription(
+        key=WASHING_MACHINE_POSTPONE_DRYING,
+        name="Postpone Drying",
+        entity_category=EntityCategory.CONFIG,
+        icon='mdi:clock',
+        options=["Off", "1", "2", "3", "4", "5", "6", "7", "8"],
+        options_value=["65535", "1", "2", "3", "4", "5", "6", "7", "8"]
     )
 )
 
@@ -972,8 +983,8 @@ WASHING_MACHINE_SENSORS: tuple[PanasonicSensorDescription, ...] = (
         icon="mdi:water"
     ),
     PanasonicSensorDescription(
-        key=WASHING_MACHINE_MONTHLY_ENERGY,
-        name="Monthly Energy",
+        key=WASHING_MACHINE_ENERGY,
+        name="Energy",
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         state_class=SensorStateClass.TOTAL_INCREASING,
         device_class=SensorDeviceClass.ENERGY,
