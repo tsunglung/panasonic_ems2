@@ -205,7 +205,6 @@ CLIMATE_AVAILABLE_PRESET_MODES = {
 CLIMATE_RX_COMMANDS = [
                 CLIMATE_ERROR_CODE,
                 CLIMATE_OPERATING_POWER,
-                CLIMATE_MONITOR_MILDEW,
                 CLIMATE_PM25,
                 CLIMATE_61
             ]
@@ -221,11 +220,16 @@ DEHUMIDIFIER_WATER_TANK_STATUS = "0x0A"
 DEHUMIDIFIER_FILTER_CLEAN = "0x0B"
 DEHUMIDIFIER_AIRFRESH_MODE = "0x0D"
 DEHUMIDIFIER_FAN_MODE = "0x0E"
+DEHUMIDIFIER_ERROR_CODE = "0x12"
 DEHUMIDIFIER_BUZZER = "0x18"
 DEHUMIDIFIER_ENERGY = "0x1D"
 DEHUMIDIFIER_50 = "0x50"
+DEHUMIDIFIER_51 = "0x51"
 DEHUMIDIFIER_PM25 = "0x53"
 DEHUMIDIFIER_TIMER_ON = "0x55"
+DEHUMIDIFIER_PM10 = "0x56"
+DEHUMIDIFIER_58 = "0x58"
+DEHUMIDIFIER_59 = "0x59"
 DEHUMIDIFIER_MONTHLY_ENERGY = "0xA0"  # alternative
 
 DEHUMIDIFIER_MAX_HUMIDITY = 70
@@ -237,6 +241,17 @@ DEHUMIDIFIER_DEFAULT_MODES = {
     "Continuous": 2,
     "Cloth Dry": 3
 }
+
+DEHUMIDIFIER_PERFORMANCE_MODELS = ["KBS", "LMS", "NM"]
+
+DEHUMIDIFIER_JHW_COMMANDS = [
+    DEHUMIDIFIER_ERROR_CODE,
+#    DEHUMIDIFIER_51,
+    DEHUMIDIFIER_PM25,
+    DEHUMIDIFIER_PM10,
+    DEHUMIDIFIER_58,
+#    DEHUMIDIFIER_59
+]
 
 ERV_POWER = "0x00"
 ERV_OPERATING_MODE = "0x01"
@@ -387,7 +402,6 @@ COMMANDS_TYPE= {
         DEHUMIDIFIER_BUZZER,
         DEHUMIDIFIER_ENERGY,
         DEHUMIDIFIER_50,
-        DEHUMIDIFIER_PM25,
         DEHUMIDIFIER_TIMER_ON
     ],
     str(DEVICE_TYPE_ERV): [
@@ -437,6 +451,26 @@ COMMANDS_TYPE= {
         AIRPURIFIER_PM25,
         AIRPURIFIER_LIGHT
     ]
+}
+
+EXTRA_COMMANDS = {
+    str(DEVICE_TYPE_CLIMATE): {
+        "RX-N": CLIMATE_RX_COMMANDS + [CLIMATE_MONITOR_MILDEW],
+        "RX-G": CLIMATE_RX_COMMANDS,
+        "RX-J": CLIMATE_RX_COMMANDS
+    },
+    str(DEVICE_TYPE_DEHUMIDIFIER): {
+        "JHW": DEHUMIDIFIER_JHW_COMMANDS
+    },
+    str(DEVICE_TYPE_ERV): {
+    },
+    str(DEVICE_TYPE_FRIDGE): {
+        "XGS": FRIDGE_XGS_COMMANDS
+    },
+    str(DEVICE_TYPE_WASHING_MACHINE): {
+    },
+    str(DEVICE_TYPE_AIRPURIFIER): {
+    }
 }
 
 SET_COMMAND_TYPE = {
@@ -830,6 +864,14 @@ DEHUMIDIFIER_SENSORS: tuple[PanasonicSensorDescription, ...] = (
         icon="mdi:water-percent"
     ),
     PanasonicSensorDescription(
+        key=DEHUMIDIFIER_PM10,
+        name="PM10",
+        native_unit_of_measurement=CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.PM10,
+        icon="mdi:chemical-weapon"
+    ),
+    PanasonicSensorDescription(
         key=DEHUMIDIFIER_PM25,
         name="PM2.5",
         native_unit_of_measurement=CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
@@ -844,6 +886,11 @@ DEHUMIDIFIER_SENSORS: tuple[PanasonicSensorDescription, ...] = (
         state_class=SensorStateClass.TOTAL_INCREASING,
         device_class=SensorDeviceClass.ENERGY,
         icon="mdi:flash"
+    ),
+    PanasonicSensorDescription(
+        key=DEHUMIDIFIER_ERROR_CODE,
+        name="Error Code",
+        icon="mdi:alert-circle"
     ),
     PanasonicSensorDescription(
         key=DEHUMIDIFIER_WATER_TANK_STATUS,

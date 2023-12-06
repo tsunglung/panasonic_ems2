@@ -27,30 +27,29 @@ from .const import (
     CONF_REFRESH_TOKEN,
     CONF_REFRESH_TOKEN_TIMEOUT,
     COMMANDS_TYPE,
+    EXTRA_COMMANDS,
     MODEL_JP_TYPES,
-    CLIMATE_RX_COMMANDS,
-    DEVICE_TYPE_FRIDGE,
-    FRIDGE_XGS_COMMANDS,
+    CLIMATE_PM25,
     DEVICE_TYPE_DEHUMIDIFIER,
+    DEVICE_TYPE_FRIDGE,
+    DEVICE_TYPE_WASHING_MACHINE,
+    DEHUMIDIFIER_MONTHLY_ENERGY,
+    DEHUMIDIFIER_PM25,
+    FRIDGE_DOOR_OPENS,
+    FRIDGE_FREEZER_TEMPERATURE,
+    FRIDGE_MONTHLY_ENERGY,
+    FRIDGE_THAW_TEMPERATURE,
+    FRIDGE_XGS_COMMANDS,
+    HA_USER_AGENT,
     WASHING_MACHINE_MODELS,
     WASHING_MACHINE_OPERATING_STATUS,
     WASHING_MACHINE_POSTPONE_DRYING,
-    DEVICE_TYPE_CLIMATE,
-    DEVICE_TYPE_WASHING_MACHINE,
-    SET_COMMAND_TYPE,
-    CLIMATE_PM25,
-    DEHUMIDIFIER_PM25,
     WASHING_MACHINE_PROGRESS,
-    FRIDGE_FREEZER_TEMPERATURE,
-    FRIDGE_THAW_TEMPERATURE,
-    USER_INFO_TYPES,
-    DEHUMIDIFIER_MONTHLY_ENERGY,
-    FRIDGE_DOOR_OPENS,
-    FRIDGE_MONTHLY_ENERGY,
     WASHING_MACHINE_WASH_TIMES,
     WASHING_MACHINE_MONTHLY_ENERGY,
     WASHING_MACHINE_WATER_USED,
-    HA_USER_AGENT,
+    SET_COMMAND_TYPE,
+    USER_INFO_TYPES,
     REQUEST_TIMEOUT
 )
 
@@ -373,16 +372,8 @@ class PanasonicSmartHome(object):
             return cmds_list
         commands_type = []
         cmds = COMMANDS_TYPE.get(str(device_type), cmds_list)
-        if (int(device_type) == DEVICE_TYPE_CLIMATE and
-                "RX" in model_type
-            ):
-            new_cmds = cmds + CLIMATE_RX_COMMANDS
-        elif (int(device_type) == DEVICE_TYPE_FRIDGE and
-                    model_type not in MODEL_JP_TYPES
-                 ):
-            new_cmds = cmds + FRIDGE_XGS_COMMANDS
-        else:
-            new_cmds = cmds.copy()
+        extra_cmds = EXTRA_COMMANDS.get(str(device_type), {}).get(model_type, [])
+        new_cmds = cmds + extra_cmds
         for cmd in new_cmds:
             commands_type.append(
                 {"CommandType": cmd}
@@ -702,7 +693,8 @@ class PanasonicSmartHome(object):
 
         if token_timeout is None:
             token_timeout = "20200101010100"
-        if refresh_token_timeout is None or len(refresh_token_timeout) < 1:
+        if (refresh_token_timeout is None or
+                isinstance(refresh_token_timeout, str) and len(refresh_token_timeout) < 1):
             refresh_token_timeout = "20200101010100"
 
         now = datetime.now()
