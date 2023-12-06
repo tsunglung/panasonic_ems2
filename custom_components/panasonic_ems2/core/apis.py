@@ -18,6 +18,10 @@ def get_user_info():
     url = f"{BASE_URL}/UserGetInfo"
     return url
 
+def get_update_info():
+    url = "https://ems2.panasonic.com.tw/PSHE_MI/api/S3/UpdateCheck"
+    return url
+
 def get_user_devices():
     url = f"{BASE_URL}/UserGetRegisteredGwList2"
     return url

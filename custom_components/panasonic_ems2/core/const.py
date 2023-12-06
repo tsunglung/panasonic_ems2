@@ -2,6 +2,11 @@
 
 from dataclasses import dataclass
 
+from homeassistant.components.binary_sensor import (
+    BinarySensorDeviceClass,
+    BinarySensorEntityDescription
+)
+
 from homeassistant.components.number import (
     NumberEntityDescription
 )
@@ -52,7 +57,7 @@ from homeassistant.const import (
 DOMAIN = "panasonic_ems2"
 
 DOMAINS = [
-#    "binary_sensor",
+    "binary_sensor",
     "climate",
     "fan",
     "humidifier",
@@ -90,6 +95,14 @@ USER_INFO_TYPES = [
     "Other"
 ]
 
+ENTITY_MONTHLY_ENERGY = "0xA0"
+ENTITY_DOOR_OPENS = "0xA1"
+ENTITY_WATER_USED = "0xA2"
+ENTITY_WASH_TIMES = "0xA3"
+ENTITY_UPDATE = "0xB0"
+ENTITY_UPDATE_INFO = "0xB1"
+ENTITY_EMPTY = "0xFF"
+
 DEVICE_TYPE_CLIMATE = 1
 DEVICE_TYPE_FRIDGE = 2
 DEVICE_TYPE_WASHING_MACHINE = 3
@@ -109,7 +122,6 @@ AIRPURIFIER_PM25 = "0x61"
 AIRPURIFIER_LIGHT = "0x62"
 AIRPURIFIER_RUNNING_TIME = "0x63"
 AIRPURIFIER_RESERVED = "0x7F"
-AIRPURIFIER_MONTHLY_ENERGY = "0xA0"  # alternative
 
 AIRPURIFIER_NANOEX_PRESET = "nanoe™ X"
 AIRPURIFIER_PRESET_MODES = {
@@ -192,7 +204,6 @@ CLIMATE_61 = "0x61"
 CLIMATE_RESERVED = "0x7F"
 CLIMATE_PRESET_MODE = "0x80"
 CLIMATE_SWING_MODE = "0x81"
-CLIMATE_MONTHLY_ENERGY = "0xA0"  # alternative
 
 CLIMATE_AVAILABLE_PRESET_MODES = {
     CLIMATE_ACTIVITY: PRESET_ACTIVITY,
@@ -208,6 +219,22 @@ CLIMATE_RX_COMMANDS = [
                 CLIMATE_PM25,
                 CLIMATE_61
             ]
+CLIMATE_PXGD_COMMMANDS = []
+CLIMATE_PXGD_MODELS = [
+    "J-DUCT", "SX-DUCT", "GX", "LJ", "LX", "PX", "QX", "LJV", "PXGD" "RX-N"
+]
+
+CLIMATE_PM10_MODELS = [
+    "JHW"
+]
+
+CLIMATE_PM10_2_MODELS = [
+    "JHV2"
+]
+
+CLIMATE_PM25_MODELS = [
+    "EHW", "GHW", "JHW", "JHV2"
+]
 
 DEHUMIDIFIER_POWER = "0x00"
 DEHUMIDIFIER_MODE = "0x01"
@@ -230,7 +257,6 @@ DEHUMIDIFIER_TIMER_ON = "0x55"
 DEHUMIDIFIER_PM10 = "0x56"
 DEHUMIDIFIER_58 = "0x58"
 DEHUMIDIFIER_59 = "0x59"
-DEHUMIDIFIER_MONTHLY_ENERGY = "0xA0"  # alternative
 
 DEHUMIDIFIER_MAX_HUMIDITY = 70
 DEHUMIDIFIER_MIN_HUMIDITY = 40
@@ -243,6 +269,8 @@ DEHUMIDIFIER_DEFAULT_MODES = {
 }
 
 DEHUMIDIFIER_PERFORMANCE_MODELS = ["KBS", "LMS", "NM"]
+
+DEHUMIDIFIER_GHW_COMMANDS = []
 
 DEHUMIDIFIER_JHW_COMMANDS = [
     DEHUMIDIFIER_ERROR_CODE,
@@ -328,8 +356,6 @@ FRIDGE_SHOPPING_MODE = "0x5B"
 FRIDGE_GO_OUT_MODE = "0x5C"
 FRIDGE_NANOEX = "0x61"
 FRIDGE_63 = "0x63"
-FRIDGE_MONTHLY_ENERGY = "0xA0"  # alternative
-FRIDGE_DOOR_OPENS = "0xA1"  # alternative
 
 FRIDGE_XGS_COMMANDS = [
                 FRIDGE_ECO,
@@ -340,7 +366,15 @@ FRIDGE_XGS_COMMANDS = [
                 FRIDGE_NANOEX
             ]
 
-WASHING_MACHINE_MODELS = ["HDH"]
+FRIDGE_MODELS = [
+    "NR-F655WX-X1", "NR-F655WX-X", "NR-F655WPX"
+]
+
+FRIDGE_2020_MODELS = [
+    "NR-F506HX-N1", "NR-F506HX-W1", "NR-F506HX-X1", "NR-F556HX-N1",
+    "NR-F556HX-W1", "NR-F556HX-X1", "NR-F606HX-N1", "NR-F606HX-W1",
+    "NR-F606HX-X1", "NR-F656WX-X1"
+]
 
 WASHING_MACHINE_POWER = "0x00"
 WASHING_MACHINE_ENABLE = "0x01"
@@ -352,16 +386,32 @@ WASHING_MACHINE_TIMER_REMAINING_TIME = "0x15"
 WASHING_MACHINE_ERROR_CODE = "0x19"
 WASHING_MACHINE_ENERGY = "0x1E"
 WASHING_MACHINE_OPERATING_STATUS = "0x50"
+WASHING_MACHINE_51 = "0x51"
+WASHING_MACHINE_52 = "0x52"
+WASHING_MACHINE_53 = "0x53"
 WASHING_MACHINE_CURRENT_MODE = "0x54"
 WASHING_MACHINE_CURRENT_PROGRESS = "0x55"
+WASHING_MACHINE_56 = "0x56"
+WASHING_MACHINE_57 = "0x57"
+WASHING_MACHINE_58 = "0x58"
+WASHING_MACHINE_59 = "0x59"
+WASHING_MACHINE_60 = "0x60"
 WASHING_MACHINE_POSTPONE_DRYING = "0x61"
 WASHING_MACHINE_PROGRESS = "0x64"
+WASHING_MACHINE_66 = "0x66"
+WASHING_MACHINE_67 = "0x67"
+WASHING_MACHINE_68 = "0x68"
 WASHING_MACHINE_WARM_WATER = "0x69"
-WASHING_MACHINE_MONTHLY_ENERGY = "0xA0"  # alternative
-WASHING_MACHINE_WASH_TIMES = "0xA1"  # alternative
-WASHING_MACHINE_WATER_USED = "0xA2"   # alternative
+WASHING_MACHINE_71 = "0x71"
+WASHING_MACHINE_72 = "0x72"
+WASHING_MACHINE_73 = "0x73"
+WASHING_MACHINE_74 = "0x74"
+
+WASHING_MACHINE_MODELS = ["HDH"]
+WASHING_MACHINE_2020_MODELS = ["KBS"] # "LMS"
 
 MODEL_JP_TYPES = [
+    "F655",
     "F657",
     "LX128B"
 ]
@@ -439,7 +489,10 @@ COMMANDS_TYPE= {
         WASHING_MACHINE_CURRENT_PROGRESS,
         WASHING_MACHINE_POSTPONE_DRYING,
         WASHING_MACHINE_PROGRESS,
-        WASHING_MACHINE_WARM_WATER
+        WASHING_MACHINE_WARM_WATER,
+        WASHING_MACHINE_66,
+        WASHING_MACHINE_67,
+        WASHING_MACHINE_68
     ],
     str(DEVICE_TYPE_AIRPURIFIER): [
         AIRPURIFIER_OPERATING_MODE,
@@ -511,6 +564,98 @@ SET_COMMAND_TYPE = {
     }
 }
 
+
+@dataclass
+class PanasonicBinarySensorDescription(
+    BinarySensorEntityDescription
+):
+    """Class to describe an Panasonic binary sensor."""
+    options_value: list[str] | None = None
+
+
+AIRPURIFIER_BINARY_SENSORS: tuple[PanasonicBinarySensorDescription, ...] = (
+    PanasonicBinarySensorDescription(
+        key=ENTITY_UPDATE,
+        name="Firmware Update",
+        icon='mdi:package-up',
+        device_class=BinarySensorDeviceClass.UPDATE
+    ),
+    PanasonicBinarySensorDescription(
+        key=ENTITY_EMPTY,
+        name="Empty",
+        icon="mdi:cog"
+    )
+)
+
+CLIMATE_BINARY_SENSORS: tuple[PanasonicBinarySensorDescription, ...] = (
+    PanasonicBinarySensorDescription(
+        key=ENTITY_UPDATE,
+        name="Firmware Update",
+        icon='mdi:package-up',
+        device_class=BinarySensorDeviceClass.UPDATE
+    ),
+    PanasonicBinarySensorDescription(
+        key=ENTITY_EMPTY,
+        name="Empty",
+        icon='mdi:cog'
+    )
+)
+
+DEHUMIDIFIER_BINARY_SENSORS: tuple[PanasonicBinarySensorDescription, ...] = (
+    PanasonicBinarySensorDescription(
+        key=ENTITY_UPDATE,
+        name="Firmware Update",
+        icon='mdi:package-up',
+        device_class=BinarySensorDeviceClass.UPDATE
+    ),
+    PanasonicBinarySensorDescription(
+        key=DEHUMIDIFIER_WATER_TANK_STATUS,
+        name="Water Tank",
+        icon='mdi:cup-water'
+    )
+)
+
+ERV_BINARY_SENSORS: tuple[PanasonicBinarySensorDescription, ...] = (
+    PanasonicBinarySensorDescription(
+        key=ENTITY_UPDATE,
+        name="Firmware Update",
+        icon='mdi:package-up',
+        device_class=BinarySensorDeviceClass.UPDATE
+    ),
+    PanasonicBinarySensorDescription(
+        key=ENTITY_EMPTY,
+        name="Empty",
+        icon='mdi:cog'
+    )
+)
+
+FRIDGE_BINARY_SENSORS: tuple[PanasonicBinarySensorDescription, ...] = (
+    PanasonicBinarySensorDescription(
+        key=ENTITY_UPDATE,
+        name="Firmware Update",
+        icon='mdi:package-up',
+        device_class=BinarySensorDeviceClass.UPDATE
+    ),
+    PanasonicBinarySensorDescription(
+        key=ENTITY_EMPTY,
+        name="Empty",
+        icon='mdi:cog'
+    )
+)
+
+WASHING_MACHINE_BINARY_SENSORS: tuple[PanasonicBinarySensorDescription, ...] = (
+    PanasonicBinarySensorDescription(
+        key=ENTITY_UPDATE,
+        name="Firmware Update",
+        icon='mdi:package-up',
+        device_class=BinarySensorDeviceClass.UPDATE
+    ),
+    PanasonicBinarySensorDescription(
+        key=ENTITY_EMPTY,
+        name="Empty",
+        icon='mdi:cog'
+    )
+)
 
 @dataclass
 class PanasonicNumberDescription(
@@ -891,11 +1036,6 @@ DEHUMIDIFIER_SENSORS: tuple[PanasonicSensorDescription, ...] = (
         key=DEHUMIDIFIER_ERROR_CODE,
         name="Error Code",
         icon="mdi:alert-circle"
-    ),
-    PanasonicSensorDescription(
-        key=DEHUMIDIFIER_WATER_TANK_STATUS,
-        name="Water Tank",
-        icon="mdi:cup-water"
     )
 )
 
@@ -965,12 +1105,12 @@ FRIDGE_SENSORS: tuple[PanasonicSensorDescription, ...] = (
         icon="mdi:fridge-outline"
     ),
     PanasonicSensorDescription(
-        key=FRIDGE_DOOR_OPENS,
+        key=ENTITY_DOOR_OPENS,
         name="Monthly Door Open Times",
         icon="mdi:information-slab-symbol"
     ),
     PanasonicSensorDescription(
-        key=FRIDGE_MONTHLY_ENERGY,
+        key=ENTITY_MONTHLY_ENERGY,
         name="Monthly Energy",
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         state_class=SensorStateClass.TOTAL_INCREASING,
@@ -1018,12 +1158,12 @@ WASHING_MACHINE_SENSORS: tuple[PanasonicSensorDescription, ...] = (
         icon="mdi:washing-machine"
     ),
     PanasonicSensorDescription(
-        key=WASHING_MACHINE_WASH_TIMES,
+        key=ENTITY_WASH_TIMES,
         name="Monthly Washing Times",
         icon="mdi:information-slab-symbol"
     ),
     PanasonicSensorDescription(
-        key=WASHING_MACHINE_WATER_USED,
+        key=ENTITY_WATER_USED,
         name="Monthly Used Water",
         state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement=UnitOfVolume.LITERS,
@@ -1175,6 +1315,14 @@ WASHING_MACHINE_SWITCHES: tuple[PanasonicSwitchDescription, ...] = (
         icon='mdi:heat-wave'
     )
 )
+
+SAA_BINARY_SENSORS = {
+    DEVICE_TYPE_AIRPURIFIER: AIRPURIFIER_BINARY_SENSORS,
+    DEVICE_TYPE_CLIMATE: CLIMATE_BINARY_SENSORS,
+    DEVICE_TYPE_DEHUMIDIFIER: DEHUMIDIFIER_BINARY_SENSORS,
+    DEVICE_TYPE_ERV: ERV_BINARY_SENSORS,
+    DEVICE_TYPE_FRIDGE: FRIDGE_BINARY_SENSORS
+}
 
 SAA_NUMBERS = {
     DEVICE_TYPE_CLIMATE: CLIMATE_NUMBERS,

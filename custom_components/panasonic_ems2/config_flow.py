@@ -1,8 +1,8 @@
 """Config flow to configure Panasonic Samrt Home component."""
 from collections import OrderedDict
 from typing import Optional
-import voluptuous as vol
 import asyncio
+import voluptuous as vol
 
 from homeassistant.config_entries import (
     CONN_CLASS_CLOUD_POLL,

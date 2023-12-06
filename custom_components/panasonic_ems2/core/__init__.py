@@ -33,11 +33,14 @@ from .const import (
     DEVICE_TYPE_DEHUMIDIFIER,
     DEVICE_TYPE_FRIDGE,
     DEVICE_TYPE_WASHING_MACHINE,
-    DEHUMIDIFIER_MONTHLY_ENERGY,
+    ENTITY_MONTHLY_ENERGY,
+    ENTITY_DOOR_OPENS,
+    ENTITY_WASH_TIMES,
+    ENTITY_WATER_USED,
+    ENTITY_UPDATE,
+    ENTITY_UPDATE_INFO,
     DEHUMIDIFIER_PM25,
-    FRIDGE_DOOR_OPENS,
     FRIDGE_FREEZER_TEMPERATURE,
-    FRIDGE_MONTHLY_ENERGY,
     FRIDGE_THAW_TEMPERATURE,
     FRIDGE_XGS_COMMANDS,
     HA_USER_AGENT,
@@ -45,9 +48,6 @@ from .const import (
     WASHING_MACHINE_OPERATING_STATUS,
     WASHING_MACHINE_POSTPONE_DRYING,
     WASHING_MACHINE_PROGRESS,
-    WASHING_MACHINE_WASH_TIMES,
-    WASHING_MACHINE_MONTHLY_ENERGY,
-    WASHING_MACHINE_WATER_USED,
     SET_COMMAND_TYPE,
     USER_INFO_TYPES,
     REQUEST_TIMEOUT
@@ -96,6 +96,7 @@ class PanasonicSmartHome(object):
         self._commands = []
         self._devices_info = {}
         self._commands_info = {}
+        self._update_info = {}
         self._cp_token = ""
         self._refresh_token = None
         self._expires_in = 0
@@ -136,7 +137,7 @@ class PanasonicSmartHome(object):
             return {}
         except Exception as e:
             # request timeout
-            _LOGGER.error(f"{endpoint} request exception {e}")
+            _LOGGER.error(f"{endpoint} {data} request exception {e}, timeout?")
             return {}
 
         if response.status == HTTPStatus.OK:
@@ -162,6 +163,7 @@ class PanasonicSmartHome(object):
             _LOGGER.warning(f"Wrong")
             res = {}
         else:
+            _LOGGER.error(f"request  {response}")
             raise Ems2TokenNotFound
 
         if isinstance(res, str):
@@ -373,7 +375,13 @@ class PanasonicSmartHome(object):
         commands_type = []
         cmds = COMMANDS_TYPE.get(str(device_type), cmds_list)
         extra_cmds = EXTRA_COMMANDS.get(str(device_type), {}).get(model_type, [])
-        new_cmds = cmds + extra_cmds
+        if (int(device_type) == DEVICE_TYPE_FRIDGE and
+                model_type not in MODEL_JP_TYPES and
+                len(extra_cmds) < 1
+            ):
+            new_cmds = cmds + extra_cmds + FRIDGE_XGS_COMMANDS
+        else:
+            new_cmds = cmds + extra_cmds
         for cmd in new_cmds:
             commands_type.append(
                 {"CommandType": cmd}
@@ -485,18 +493,57 @@ class PanasonicSmartHome(object):
                 device_type = self._devices_info[gwid]["DeviceType"]
                 if info == "Other":
                     if device_type == str(DEVICE_TYPE_FRIDGE):
-                        self._devices_info[gwid]["Information"][0]["status"][FRIDGE_DOOR_OPENS] = gwinfo["Ref_OpenDoor_Total"]
+                        self._devices_info[gwid]["Information"][0]["status"][ENTITY_DOOR_OPENS] = gwinfo["Ref_OpenDoor_Total"]
                     if device_type == str(DEVICE_TYPE_WASHING_MACHINE):
-                        self._devices_info[gwid]["Information"][0]["status"][WASHING_MACHINE_WASH_TIMES] = gwinfo["WM_WashTime_Total"]
-                        self._devices_info[gwid]["Information"][0]["status"][WASHING_MACHINE_WATER_USED] = gwinfo["WM_WaterUsed_Total"]
+                        self._devices_info[gwid]["Information"][0]["status"][ENTITY_WASH_TIMES] = gwinfo["WM_WashTime_Total"]
+                        self._devices_info[gwid]["Information"][0]["status"][ENTITY_WATER_USED] = gwinfo["WM_WaterUsed_Total"]
                 if info == "Power":
                     if device_type == str(DEVICE_TYPE_DEHUMIDIFIER):
-                        self._devices_info[gwid]["Information"][0]["status"][DEHUMIDIFIER_MONTHLY_ENERGY] = gwinfo["Total_kwh"]
+                        self._devices_info[gwid]["Information"][0]["status"][ENTITY_MONTHLY_ENERGY] = gwinfo["Total_kwh"]
                     if device_type == str(DEVICE_TYPE_FRIDGE):
-                        self._devices_info[gwid]["Information"][0]["status"][FRIDGE_MONTHLY_ENERGY] = gwinfo["Total_kwh"]
+                        self._devices_info[gwid]["Information"][0]["status"][ENTITY_MONTHLY_ENERGY] = gwinfo["Total_kwh"]
                     if device_type == str(DEVICE_TYPE_WASHING_MACHINE):
-                        self._devices_info[gwid]["Information"][0]["status"][WASHING_MACHINE_MONTHLY_ENERGY] = gwinfo["Total_kwh"]
+                        self._devices_info[gwid]["Information"][0]["status"][ENTITY_MONTHLY_ENERGY] = gwinfo["Total_kwh"]
 
+        return True
+
+    @api_status
+    async def get_update_info(self, check=False):
+        """ get udpate info
+
+        Returns:
+            bool: is update info got
+        """
+
+        if not check:
+            for gwid in self._devices_info.keys():
+                if "Information" in self._devices_info[gwid]:
+                    self._devices_info[gwid]["Information"][0]["status"][ENTITY_UPDATE] = self._update_info.get(gwid, False)
+            return False
+
+        for gwid in self._devices_info.keys():
+            if len(self._update_info) < 1:
+                self._update_info[gwid] = False
+            if "Information" in self._devices_info[gwid]:
+                self._devices_info[gwid]["Information"][0]["status"][ENTITY_UPDATE] = False
+
+        header = {"CPToken": self._cp_token}
+        response = await self.request(
+            method="GET", headers=header, endpoint=apis.get_update_info()
+        )
+
+        if "GwList" in response:
+            idx = 0
+            for gwinfo in response["GwList"]:
+                gwid = gwinfo.get("GwID", None)
+                if gwid and "Information" not in self._devices_info[gwid]:
+                    continue
+
+                self._update_info[gwid] = True
+                self._devices_info[gwid]["Information"][0]["status"][ENTITY_UPDATE] = True
+                self._devices_info[gwid]["Information"][0]["status"][ENTITY_UPDATE_INFO] = response["UpdateInfo"][idx].get("updateVersion", "")
+                idx = idx + 1
+                _LOGGER.error(self._devices_info[gwid])
         return True
 
     @api_status
@@ -504,6 +551,10 @@ class PanasonicSmartHome(object):
         """
         Get devices information
         """
+        get_update_info = False
+        if self._api_counts_per_hour < 5:
+            get_update_info = True
+
         devices = await self.get_user_devices()
         for cmd in self._commands:
             self._commands_info[cmd['ModelType']] = cmd["JSON"]
@@ -554,6 +605,8 @@ class PanasonicSmartHome(object):
             await asyncio.sleep(.1)
             await self.get_device_with_info(device, command_types)
         await self.get_user_info()
+        await self.get_update_info(get_update_info)
+
         return self._devices_info
 
     @api_status
@@ -769,6 +822,7 @@ class PanasonicSmartHome(object):
         Update data
         """
         now = datetime.now()
+        _LOGGER.error(f"Updating device info... {now} {self._update_timestamp} {self._token_timeout} {self._api_counts_per_hour}")
         self._update_timestamp = now.timestamp()
 
         await self.async_check_tokens(
