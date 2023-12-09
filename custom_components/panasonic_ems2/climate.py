@@ -215,7 +215,8 @@ class PanasonicClimate(PanasonicBaseEntity, ClimateEntity):
                 await self.client.set_device(gwid, device_id, power, 1)
 
         await asyncio.sleep(1)
-        await self.coordinator.async_request_refresh()
+        await self.client.update_device(gwid, device_id)
+        self.async_write_ha_state()
 
     @property
     def preset_mode(self) -> str:
@@ -260,7 +261,8 @@ class PanasonicClimate(PanasonicBaseEntity, ClimateEntity):
         if not is_on:
             await self.client.set_device(gwid, device_id, CLIMATE_POWER, 1)
 
-        await self.coordinator.async_request_refresh()
+        await self.client.update_device(gwid, device_id)
+        self.async_write_ha_state()
 
     @property
     def fan_mode(self) -> str:
@@ -317,7 +319,8 @@ class PanasonicClimate(PanasonicBaseEntity, ClimateEntity):
         device_id = self.device_id
 
         await self.client.set_device(gwid, device_id, fan_mode, value)
-        await self.coordinator.async_request_refresh()
+        await self.client.update_device(gwid, device_id)
+        self.async_write_ha_state()
 
     @property
     def swing_mode(self) -> str:
@@ -391,7 +394,8 @@ class PanasonicClimate(PanasonicBaseEntity, ClimateEntity):
             mode = 4
 
         await self.client.set_device(gwid, device_id, CLIMATE_SWING_MODE, mode)
-        await self.coordinator.async_request_refresh()
+        await self.client.update_device(gwid, device_id)
+        self.async_write_ha_state()
 
     @property
     def target_temperature(self) -> int:
@@ -411,7 +415,8 @@ class PanasonicClimate(PanasonicBaseEntity, ClimateEntity):
             await self.client.set_device(gwid, device_id, ERV_TARGET_TEMPERATURE, int(temp))
         else:
             await self.client.set_device(gwid, device_id, CLIMATE_TARGET_TEMPERATURE, int(temp))
-        await self.coordinator.async_request_refresh()
+        await self.client.update_device(gwid, device_id)
+        self.async_write_ha_state()
 
     @property
     def current_temperature(self) -> int:

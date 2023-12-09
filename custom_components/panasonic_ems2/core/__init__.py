@@ -610,6 +610,21 @@ class PanasonicSmartHome(object):
         return self._devices_info
 
     @api_status
+    async def update_device(self, gwid:str, device_id):
+        """
+        Update device status
+        """
+        device = self._devices_info.get(gwid, None)
+        if not device:
+            return
+
+        command_types = self._get_commands(
+            device["ModelType"],
+            device["DeviceType"]
+        )
+        await self.get_device_with_info(device, command_types)
+
+    @api_status
     async def set_device(self, gwid: str, device_id, func: str, value):
         """
         Set device status

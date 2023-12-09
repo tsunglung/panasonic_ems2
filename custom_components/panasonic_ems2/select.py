@@ -135,4 +135,5 @@ class PanasonicSelect(PanasonicBaseEntity, SelectEntity):
 
         await self.client.set_device(
             gwid, device_id, self.entity_description.key, int(value))
-        await self.coordinator.async_request_refresh()
+        await self.client.update_device(gwid, device_id)
+        self.async_write_ha_state()

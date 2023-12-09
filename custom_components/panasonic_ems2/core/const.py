@@ -110,6 +110,7 @@ DEVICE_TYPE_DEHUMIDIFIER = 4
 DEVICE_TYPE_AIRPURIFIER = 8
 DEVICE_TYPE_ERV = 14
 DEVICE_TYPE_FAN = 15
+DEVICE_TYPE_WEIGHT_PLATE = 23
 
 AIRPURIFIER_OPERATING_MODE = "0x01"
 AIRPURIFIER_TIMER_ON = "0x02"
@@ -405,10 +406,16 @@ WASHING_MACHINE_WARM_WATER = "0x69"
 WASHING_MACHINE_71 = "0x71"
 WASHING_MACHINE_72 = "0x72"
 WASHING_MACHINE_73 = "0x73"
-WASHING_MACHINE_74 = "0x74"
+WASHING_MACHINE_REMOTE_CONTROL = "0x74"
 
 WASHING_MACHINE_MODELS = ["HDH"]
 WASHING_MACHINE_2020_MODELS = ["KBS"] # "LMS"
+
+WASHING_MACHINE_LX128B_COMMANDS = [
+                WASHING_MACHINE_71,
+                WASHING_MACHINE_72,
+                WASHING_MACHINE_73
+            ]
 
 MODEL_JP_TYPES = [
     "F655",
@@ -417,6 +424,16 @@ MODEL_JP_TYPES = [
 ]
 
 COMMANDS_TYPE= {
+    str(DEVICE_TYPE_AIRPURIFIER): [
+        AIRPURIFIER_OPERATING_MODE,
+        AIRPURIFIER_TIMER_ON,
+        AIRPURIFIER_TIMER_OFF,
+        AIRPURIFIER_AIR_QUALITY,
+        AIRPURIFIER_NANOEX,
+        AIRPURIFIER_BUZZER,
+        AIRPURIFIER_PM25,
+        AIRPURIFIER_LIGHT
+    ],
     str(DEVICE_TYPE_CLIMATE): [
         CLIMATE_POWER,
         CLIMATE_OPERATING_MODE,
@@ -477,7 +494,6 @@ COMMANDS_TYPE= {
         FRIDGE_GO_OUT_MODE
     ],
     str(DEVICE_TYPE_WASHING_MACHINE): [
-#        WASHING_MACHINE_POWER,
         WASHING_MACHINE_ENABLE,
         WASHING_MACHINE_REMAING_WASH_TIME,
         WASHING_MACHINE_TIMER,
@@ -492,17 +508,8 @@ COMMANDS_TYPE= {
         WASHING_MACHINE_WARM_WATER,
         WASHING_MACHINE_66,
         WASHING_MACHINE_67,
-        WASHING_MACHINE_68
-    ],
-    str(DEVICE_TYPE_AIRPURIFIER): [
-        AIRPURIFIER_OPERATING_MODE,
-        AIRPURIFIER_TIMER_ON,
-        AIRPURIFIER_TIMER_OFF,
-        AIRPURIFIER_AIR_QUALITY,
-        AIRPURIFIER_NANOEX,
-        AIRPURIFIER_BUZZER,
-        AIRPURIFIER_PM25,
-        AIRPURIFIER_LIGHT
+        WASHING_MACHINE_68,
+        WASHING_MACHINE_REMOTE_CONTROL
     ]
 }
 
@@ -518,9 +525,11 @@ EXTRA_COMMANDS = {
     str(DEVICE_TYPE_ERV): {
     },
     str(DEVICE_TYPE_FRIDGE): {
-        "XGS": FRIDGE_XGS_COMMANDS
+        "XGS": FRIDGE_XGS_COMMANDS,
+#        "F657": [FRIDGE_NANOEX]
     },
     str(DEVICE_TYPE_WASHING_MACHINE): {
+        "LX128B": WASHING_MACHINE_LX128B_COMMANDS
     },
     str(DEVICE_TYPE_AIRPURIFIER): {
     }
@@ -797,7 +806,7 @@ CLIMATE_SELECTS: tuple[PanasonicSelectDescription, ...] = (
         key=CLIMATE_FUZZY_MODE,
         name="Fuzzy Mode",
         entity_category=EntityCategory.CONFIG,
-        icon='mdi:broom',
+        icon='mdi:home-thermometer-outline',
         options=["Better", "Too cloud", "Too hot", "Off", "On"],
         options_value=["0", "1", "2", "3", "4"],
     ),
@@ -813,7 +822,7 @@ CLIMATE_SELECTS: tuple[PanasonicSelectDescription, ...] = (
         key=CLIMATE_INDICATOR_LIGHT,
         name="Indicator Light",
         entity_category=EntityCategory.CONFIG,
-        icon='mdi:broom',
+        icon='mdi:lightbulb',
         options=["Light", "Dark", "Off"],
         options_value=["0", "1", "2"]
     ),
@@ -821,7 +830,7 @@ CLIMATE_SELECTS: tuple[PanasonicSelectDescription, ...] = (
         key=CLIMATE_SWING_VERTICAL_LEVEL,
         name="Vertical Fan Level",
         entity_category=EntityCategory.CONFIG,
-        icon='mdi:broom',
+        icon='mdi:fan',
         options=["Auto", "1", "2", "3", "4"],
         options_value=["0", "1", "2", "3", "4"],
     ),
@@ -829,7 +838,7 @@ CLIMATE_SELECTS: tuple[PanasonicSelectDescription, ...] = (
         key=CLIMATE_SWING_HORIZONTAL_LEVEL,
         name="Horizontal Fan Level",
         entity_category=EntityCategory.CONFIG,
-        icon='mdi:broom',
+        icon='mdi:fan',
         options=["Auto", "1", "2", "3", "4"],
         options_value=["0", "1", "2", "3", "4"],
     ),
@@ -859,7 +868,7 @@ ERV_SELECTS: tuple[PanasonicSelectDescription, ...] = (
         key=ERV_VENTILATE_MODE,
         name="Ventilate Mode",
         entity_category=EntityCategory.CONFIG,
-        icon='mdi:broom',
+        icon='mdi:home-thermometer',
         options=["Auto", "Ventilate", "Normal"],
         options_value=["0", "1", "2"],
     ),
@@ -867,7 +876,7 @@ ERV_SELECTS: tuple[PanasonicSelectDescription, ...] = (
         key=ERV_PRE_HEAT_COOL,
         name="Pre Head/Cool",
         entity_category=EntityCategory.CONFIG,
-        icon='mdi:broom',
+        icon='mdi:home-thermometer-outline',
         options=["Disabled", "30min", "60min"],
         options_value=["0", "1", "2"]
     )
@@ -905,7 +914,7 @@ WASHING_MACHINE_SELECTS: tuple[PanasonicSelectDescription, ...] = (
         key=WASHING_MACHINE_PROGRESS,
         name="Progress",
         entity_category=EntityCategory.CONFIG,
-        icon='mdi:broom',
+        icon='mdi:washing-machine',
         options=["Standard", "Custom", "Immerse", "Quick"],
         options_value=["0", "1", "2", "3"],
     ),
@@ -1176,6 +1185,11 @@ WASHING_MACHINE_SENSORS: tuple[PanasonicSensorDescription, ...] = (
         state_class=SensorStateClass.TOTAL_INCREASING,
         device_class=SensorDeviceClass.ENERGY,
         icon="mdi:flash"
+    ),
+    PanasonicSensorDescription(
+        key=WASHING_MACHINE_REMOTE_CONTROL,
+        name="Remote Control",
+        icon='mdi:cog'
     )
 )
 
@@ -1321,7 +1335,8 @@ SAA_BINARY_SENSORS = {
     DEVICE_TYPE_CLIMATE: CLIMATE_BINARY_SENSORS,
     DEVICE_TYPE_DEHUMIDIFIER: DEHUMIDIFIER_BINARY_SENSORS,
     DEVICE_TYPE_ERV: ERV_BINARY_SENSORS,
-    DEVICE_TYPE_FRIDGE: FRIDGE_BINARY_SENSORS
+    DEVICE_TYPE_FRIDGE: FRIDGE_BINARY_SENSORS,
+    DEVICE_TYPE_WASHING_MACHINE: WASHING_MACHINE_BINARY_SENSORS
 }
 
 SAA_NUMBERS = {

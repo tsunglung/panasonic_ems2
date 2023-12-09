@@ -152,7 +152,8 @@ class PanasonicHumidifier(PanasonicBaseEntity, HumidifierEntity):
         device_id = self.device_id
 
         await self.client.set_device(gwid, device_id, DEHUMIDIFIER_TARGET_HUMIDITY, humidity)
-        await self.coordinator.async_request_refresh()
+        await self.client.update_device(gwid, device_id)
+        self.async_write_ha_state()
 
     async def async_set_mode(self, mode: str) -> None:
         """Set new mode."""
@@ -162,7 +163,8 @@ class PanasonicHumidifier(PanasonicBaseEntity, HumidifierEntity):
         value = self._modes[mode]
 
         await self.client.set_device(gwid, device_id, DEHUMIDIFIER_MODE, value)
-        await self.coordinator.async_request_refresh()
+        await self.client.update_device(gwid, device_id)
+        self.async_write_ha_state()
 
     async def async_turn_on(self) -> None:
         """Turn the device on."""
@@ -171,7 +173,8 @@ class PanasonicHumidifier(PanasonicBaseEntity, HumidifierEntity):
 
         await self.client.set_device(gwid, device_id, DEHUMIDIFIER_POWER, 1)
         await asyncio.sleep(1)
-        await self.coordinator.async_request_refresh()
+        await self.client.update_device(gwid, device_id)
+        self.async_write_ha_state()
 
     async def async_turn_off(self) -> None:
         """Turn the device off."""
@@ -180,4 +183,5 @@ class PanasonicHumidifier(PanasonicBaseEntity, HumidifierEntity):
 
         await self.client.set_device(gwid, device_id, DEHUMIDIFIER_POWER, 0)
         await asyncio.sleep(1)
-        await self.coordinator.async_request_refresh()
+        await self.client.update_device(gwid, device_id)
+        self.async_write_ha_state()

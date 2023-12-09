@@ -156,19 +156,25 @@ class PanasonicFan(PanasonicBaseEntity, FanEntity):
         **kwargs,
     ) -> None:
         """Turn the device on."""
+        gwid = self.device_gwid
+        device_id = self.device_id
         if preset_mode:
             # If operation mode was set the device must not be turned on.
             await self.async_set_preset_mode(preset_mode)
         else:
             await self.client.set_device(self.device, FAN_POWER, 1)
         await asyncio.sleep(1)
-        await self.coordinator.async_request_refresh()
+        await self.client.update_device(gwid, device_id)
+        await self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs) -> None:
         """Turn the device off."""
+        gwid = self.device_gwid
+        device_id = self.device_id
         await self.client.set_device(self.device, FAN_POWER, 0)
         await asyncio.sleep(1)
-        await self.coordinator.async_request_refresh()
+        await self.client.update_device(gwid, device_id)
+        await self.async_write_ha_state()
 
     @property
     def preset_modes(self) -> list[str] | None:
@@ -200,16 +206,21 @@ class PanasonicFan(PanasonicBaseEntity, FanEntity):
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set the preset mode of the fan."""
+        gwid = self.device_gwid
+        device_id = self.device_id
         if self._device_type == DEVICE_TYPE_FAN:
             await self.client.set_device(
                 self.device, FAN_OPERATING_MODE, FAN_PRESET_MODES[preset_mode])
         if self._device_type == DEVICE_TYPE_AIRPURIFIER:
             await self.client.set_device(
                 self.device, FAN_OPERATING_MODE, AIRPURIFIER_PRESET_MODES[preset_mode])
-        await self.coordinator.async_request_refresh()
+        await self.client.update_device(gwid, device_id)
+        await self.async_write_ha_state()
 
     async def async_set_percentage(self, percentage: int) -> None:
         """Set the speed percentage of the fan."""
+        gwid = self.device_gwid
+        device_id = self.device_id
         if percentage == 0:
             await self.client.set_device(self.device, FAN_POWER, 0)
         else:
@@ -218,7 +229,8 @@ class PanasonicFan(PanasonicBaseEntity, FanEntity):
             if self._device_type == DEVICE_TYPE_AIRPURIFIER:
                 await self.client.set_device(
                     self.device, AIRPURIFIER_OPERATING_MODE, percentage / self.percentage_step)
-        await self.coordinator.async_request_refresh()
+        await self.client.update_device(gwid, device_id)
+        self.async_write_ha_state()
 
     @property
     def oscillating(self) -> bool | None:
@@ -232,6 +244,9 @@ class PanasonicFan(PanasonicBaseEntity, FanEntity):
 
     async def async_oscillate(self, oscillating: bool) -> None:
         """Set oscillation."""
+        gwid = self.device_gwid
+        device_id = self.device_id
         if self._device_type == DEVICE_TYPE_FAN:
             await self.client.set_device(self.device, FAN_OSCILLATE, oscillating)
-        await self.coordinator.async_request_refresh()
+        await self.client.update_device(gwid, device_id)
+        self.async_write_ha_state()

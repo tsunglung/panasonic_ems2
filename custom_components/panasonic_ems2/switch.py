@@ -119,11 +119,13 @@ class PanasonicSwitch(PanasonicBaseEntity, SwitchEntity):
         device_id = self.device_id
         await self.client.set_device(gwid, device_id, self.entity_description.key, 1)
         await asyncio.sleep(1)
-        await self.coordinator.async_request_refresh()
+        await self.client.update_device(gwid, device_id)
+        self.async_write_ha_state()
 
     async def async_turn_off(self) -> None:
         gwid = self.device_gwid
         device_id = self.device_id
-        self.client.set_device(gwid, device_id, self.entity_description.key, 0)
+        await self.client.set_device(gwid, device_id, self.entity_description.key, 0)
         await asyncio.sleep(1)
-        await self.coordinator.async_request_refresh()
+        await self.client.update_device(gwid, device_id)
+        self.async_write_ha_state()
