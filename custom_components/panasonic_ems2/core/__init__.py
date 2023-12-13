@@ -45,6 +45,7 @@ from .const import (
     FRIDGE_XGS_COMMANDS,
     HA_USER_AGENT,
     WASHING_MACHINE_MODELS,
+    WASHING_MACHINE_2020_MODELS,
     WASHING_MACHINE_OPERATING_STATUS,
     WASHING_MACHINE_POSTPONE_DRYING,
     WASHING_MACHINE_PROGRESS,
@@ -137,7 +138,7 @@ class PanasonicSmartHome(object):
             return {}
         except Exception as e:
             # request timeout
-            _LOGGER.error(f"{endpoint} {data} request exception {e}, timeout?")
+            # _LOGGER.error(f"{endpoint} {headers['GWID']} request exception {e}, timeout?")
             return {}
 
         if response.status == HTTPStatus.OK:
@@ -282,6 +283,7 @@ class PanasonicSmartHome(object):
                         new = int(new) - 500
                 else:
                     new = int(status)
+                new = int(status)
             elif (model_type in ["XGS"] and
                     command_type in [
                         FRIDGE_FREEZER_TEMPERATURE,
@@ -298,7 +300,7 @@ class PanasonicSmartHome(object):
                 new = int(status)
         except:
             new = status
-        return new
+        return command_type, new
 
     def _refactor_info(self, model_type: str, devices_info: list):
         """
@@ -314,10 +316,9 @@ class PanasonicSmartHome(object):
                 device_info = device["Info"]
                 device_status = {}
                 for info in device_info:
-                    command_type = info["CommandType"]
-                    status = self._workaround_info(
+                    command_type, status = self._workaround_info(
                         model_type,
-                        command_type,
+                        info["CommandType"],
                         info["status"]
                     )
                     device_status[command_type] = status
@@ -363,7 +364,7 @@ class PanasonicSmartHome(object):
             self._devices_info[gwid]["Information"] = info
         return info
 
-    def _get_commands(self, model_type, device_type):
+    def _get_commands(self, device_type, model_type):
         """
         get commands (saa: service code)
         """
@@ -389,14 +390,17 @@ class PanasonicSmartHome(object):
 
         return commands_type
 
-    def _refactor_cmds_paras(self, commands_list: list) -> list:
+    def _refactor_cmds_paras(self, commands_list: dict) -> list:
         """
         refactor the status of information for easy use
         """
         new = {}
-        cmds_list = []
         for model_type, cmd_list in commands_list.items():
+            cmds_list = []
             for cmds in cmd_list:
+                if "list" not in cmds:
+                    _LOGGER.error(f"commands_list {commands_list}")
+                    continue
                 lst = cmds["list"]
                 cmds_para = {}
                 cmds_name = {}
@@ -407,7 +411,7 @@ class PanasonicSmartHome(object):
                         parameters_list = cmd["Parameters"]
                         for para in parameters_list:
                             parameters[para[0]] = para[1]
-                        if model_type in WASHING_MACHINE_MODELS:
+                        if model_type in WASHING_MACHINE_MODELS + WASHING_MACHINE_2020_MODELS:
                             if cmd_type == WASHING_MACHINE_OPERATING_STATUS:
                                 parameters["Off"] = 0
                     elif "range" in cmd["ParameterType"]:
@@ -426,9 +430,11 @@ class PanasonicSmartHome(object):
                         if cmd["ParameterType"] == "rangeA":
                             parameters["Auto"] = 0
 
-                        if model_type in WASHING_MACHINE_MODELS:
-                            if cmd_type == WASHING_MACHINE_POSTPONE_DRYING:
-                                parameters["Off"] = 65535
+                        if model_type in WASHING_MACHINE_MODELS + WASHING_MACHINE_2020_MODELS:
+                            if cmd_type == "0x61":
+                                parameters["Off"] = 0
+                                cmds_para[WASHING_MACHINE_POSTPONE_DRYING] = parameters
+                                cmds_name[WASHING_MACHINE_POSTPONE_DRYING] = cmd["CommandName"]
 
                     cmds_para[cmd_type] = parameters
                     cmds_name[cmd_type] = cmd["CommandName"]
@@ -440,17 +446,18 @@ class PanasonicSmartHome(object):
             new[model_type] = cmds_list
         self._commands_info = new
 
-    def _offline_info(self, model_type):
+    def _offline_info(self, device_type, model_type):
         """
         For washing machine, can not get info after offline
 
         Returns:
             list: the info of device
         """
-        commands = COMMANDS_TYPE.get(str(model_type), None)
+        commands = COMMANDS_TYPE.get(str(device_type), None)
+        extra_cmds = EXTRA_COMMANDS.get(str(device_type), {}).get(model_type, [])
         status = {}
         if commands:
-            for key in commands:
+            for key in commands + extra_cmds:
                 status[key] = 0
 
         return [{'DeviceID': 1, 'status': status}]
@@ -543,7 +550,6 @@ class PanasonicSmartHome(object):
                 self._devices_info[gwid]["Information"][0]["status"][ENTITY_UPDATE] = True
                 self._devices_info[gwid]["Information"][0]["status"][ENTITY_UPDATE_INFO] = response["UpdateInfo"][idx].get("updateVersion", "")
                 idx = idx + 1
-                _LOGGER.error(self._devices_info[gwid])
         return True
 
     @api_status
@@ -581,11 +587,18 @@ class PanasonicSmartHome(object):
                     if info.get("CommandType", "") == "0x65": # Fridge
                         status = info["Status"]
                         break
+                    if info.get("CommandType", "") == "0x63": # JP Fridge
+                        status = info["Status"]
+                        break
+                    if info.get("Status", "") != "":
+                        status = info["Status"]
+                        break
                 gwid_status[gwid] = status
 
         for device in devices:
             gwid = device["GWID"]
             device_type = device["DeviceType"]
+            model_type = device["ModelType"]
             if gwid not in self._devices_info:
                 # _LOGGER.warning(f"gwid not in self._devices_info!")
                 self._devices_info[gwid] = device
@@ -594,13 +607,13 @@ class PanasonicSmartHome(object):
                 # No status code, it maybe offline or power off of washing machine or network busy
                 # _LOGGER.warning(f"gwid {gwid} is offline {self._devices_info[gwid]}!")
                 if device_type in [str(DEVICE_TYPE_WASHING_MACHINE)]:
-                    self._devices_info[gwid]["Information"] = self._offline_info(device_type)
+                    self._devices_info[gwid]["Information"] = self._offline_info(device_type, model_type)
                 continue
-            if not self.is_supported(device["ModelType"]):
+            if not self.is_supported(model_type):
                 continue
             command_types = self._get_commands(
-                device["ModelType"],
-                device_type
+                device_type,
+                model_type
             )
             await asyncio.sleep(.1)
             await self.get_device_with_info(device, command_types)
@@ -619,8 +632,8 @@ class PanasonicSmartHome(object):
             return
 
         command_types = self._get_commands(
-            device["ModelType"],
-            device["DeviceType"]
+            device["DeviceType"],
+            device["ModelType"]
         )
         await self.get_device_with_info(device, command_types)
 
@@ -837,7 +850,6 @@ class PanasonicSmartHome(object):
         Update data
         """
         now = datetime.now()
-        _LOGGER.error(f"Updating device info... {now} {self._update_timestamp} {self._token_timeout} {self._api_counts_per_hour}")
         self._update_timestamp = now.timestamp()
 
         await self.async_check_tokens(

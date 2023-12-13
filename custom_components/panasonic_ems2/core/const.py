@@ -379,7 +379,7 @@ FRIDGE_2020_MODELS = [
 
 WASHING_MACHINE_POWER = "0x00"
 WASHING_MACHINE_ENABLE = "0x01"
-WASHING_MACHINE_CURRENT_MODE_OLD = "0x02"
+WASHING_MACHINE_PROGRESS = "0x02"
 WASHING_MACHINE_OPERATING_STATUS_OLD = "0x03"
 WASHING_MACHINE_REMAING_WASH_TIME= "0x13"
 WASHING_MACHINE_TIMER = "0x14"
@@ -392,13 +392,13 @@ WASHING_MACHINE_52 = "0x52"
 WASHING_MACHINE_53 = "0x53"
 WASHING_MACHINE_CURRENT_MODE = "0x54"
 WASHING_MACHINE_CURRENT_PROGRESS = "0x55"
-WASHING_MACHINE_56 = "0x56"
+WASHING_MACHINE_POSTPONE_DRYING = "0x56"
 WASHING_MACHINE_57 = "0x57"
 WASHING_MACHINE_58 = "0x58"
 WASHING_MACHINE_59 = "0x59"
 WASHING_MACHINE_60 = "0x60"
-WASHING_MACHINE_POSTPONE_DRYING = "0x61"
-WASHING_MACHINE_PROGRESS = "0x64"
+WASHING_MACHINE_61 = "0x61"
+WASHING_MACHINE_PROGRESS_NEW = "0x64"
 WASHING_MACHINE_66 = "0x66"
 WASHING_MACHINE_67 = "0x67"
 WASHING_MACHINE_68 = "0x68"
@@ -408,14 +408,22 @@ WASHING_MACHINE_72 = "0x72"
 WASHING_MACHINE_73 = "0x73"
 WASHING_MACHINE_REMOTE_CONTROL = "0x74"
 
-WASHING_MACHINE_MODELS = ["HDH"]
-WASHING_MACHINE_2020_MODELS = ["KBS"] # "LMS"
+WASHING_MACHINE_MODELS = ["DDH", "DW","HDH", "MDH"]
+WASHING_MACHINE_2020_MODELS = ["KBS", "LM", "LMS"]
 
 WASHING_MACHINE_LX128B_COMMANDS = [
-                WASHING_MACHINE_71,
-                WASHING_MACHINE_72,
-                WASHING_MACHINE_73
-            ]
+    WASHING_MACHINE_71,
+    WASHING_MACHINE_72,
+    WASHING_MACHINE_73
+]
+
+WASHING_MACHINE_HDH_COMMANDS = [
+    WASHING_MACHINE_68
+]
+
+WASHING_MACHINE_KBS_COMMANDS = [
+    WASHING_MACHINE_58
+]
 
 MODEL_JP_TYPES = [
     "F655",
@@ -508,7 +516,6 @@ COMMANDS_TYPE= {
         WASHING_MACHINE_WARM_WATER,
         WASHING_MACHINE_66,
         WASHING_MACHINE_67,
-        WASHING_MACHINE_68,
         WASHING_MACHINE_REMOTE_CONTROL
     ]
 }
@@ -529,7 +536,14 @@ EXTRA_COMMANDS = {
 #        "F657": [FRIDGE_NANOEX]
     },
     str(DEVICE_TYPE_WASHING_MACHINE): {
-        "LX128B": WASHING_MACHINE_LX128B_COMMANDS
+        "LX128B": WASHING_MACHINE_LX128B_COMMANDS,
+        "DDH": WASHING_MACHINE_HDH_COMMANDS,
+        "DW": WASHING_MACHINE_HDH_COMMANDS,
+        "HDH": WASHING_MACHINE_HDH_COMMANDS,
+        "MDH": WASHING_MACHINE_HDH_COMMANDS,
+        "KBS": WASHING_MACHINE_KBS_COMMANDS,
+        "LM": WASHING_MACHINE_KBS_COMMANDS,
+        "LMS": WASHING_MACHINE_KBS_COMMANDS
     },
     str(DEVICE_TYPE_AIRPURIFIER): {
     }
@@ -568,7 +582,8 @@ SET_COMMAND_TYPE = {
     str(DEVICE_TYPE_WASHING_MACHINE): {
         WASHING_MACHINE_ENABLE: 1,
         WASHING_MACHINE_TIMER: 20,
-        WASHING_MACHINE_PROGRESS: 100,
+        WASHING_MACHINE_PROGRESS: 130,
+        WASHING_MACHINE_PROGRESS_NEW: 100,
         WASHING_MACHINE_WARM_WATER: 105
     }
 }
@@ -915,8 +930,8 @@ WASHING_MACHINE_SELECTS: tuple[PanasonicSelectDescription, ...] = (
         name="Progress",
         entity_category=EntityCategory.CONFIG,
         icon='mdi:washing-machine',
-        options=["Standard", "Custom", "Immerse", "Quick"],
-        options_value=["0", "1", "2", "3"],
+        options=["Standard", "Soft Wash", "Strong Wash", "Wash with Shirt", "Wash with Blanket", "Wash with High-end clothing", "Wash with Woolen fabrics", "User-defined Wash", "Soak Wash", "Dry Clean", "Quick Wash", "Tank Wash", "Wash with Warm Water"],
+        options_value=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
     ),
     PanasonicSelectDescription(
         key=WASHING_MACHINE_TIMER,
@@ -932,7 +947,7 @@ WASHING_MACHINE_SELECTS: tuple[PanasonicSelectDescription, ...] = (
         entity_category=EntityCategory.CONFIG,
         icon='mdi:clock',
         options=["Off", "1", "2", "3", "4", "5", "6", "7", "8"],
-        options_value=["65535", "1", "2", "3", "4", "5", "6", "7", "8"]
+        options_value=["0", "1", "2", "3", "4", "5", "6", "7", "8"]
     )
 )
 
