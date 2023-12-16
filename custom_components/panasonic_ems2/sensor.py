@@ -13,9 +13,11 @@ from .core.const import (
     DATA_CLIENT,
     DATA_COORDINATOR,
     SAA_SENSORS,
-    DEVICE_TYPE_WASHING_MACHINE,
     DEVICE_TYPE_FRIDGE,
+    DEVICE_TYPE_WASHING_MACHINE,
+    DEVICE_TYPE_WEIGHT_PLATE,
     WASHING_MACHINE_SENSORS,
+    WEIGHT_PLATE_SENSORS,
     PanasonicSensorDescription
 )
 SCAN_INTERVAL = timedelta(seconds=60)
@@ -50,6 +52,13 @@ async def async_setup_entry(hass, entry, async_add_entities) -> bool:
 
             if device_type == DEVICE_TYPE_WASHING_MACHINE:
                 for description in WASHING_MACHINE_SENSORS:
+                        entities.extend(
+                            [PanasonicSensor(
+                                coordinator, device_gwid, 1, client, info, description)]
+                        )
+
+            if device_type == DEVICE_TYPE_WEIGHT_PLATE:
+                for description in WEIGHT_PLATE_SENSORS:
                         entities.extend(
                             [PanasonicSensor(
                                 coordinator, device_gwid, 1, client, info, description)]

@@ -38,6 +38,10 @@ def get_device_status():
     url = f"{BASE_URL}/UserGetDeviceStatus"
     return url
 
+def get_plate_mode():
+    url = f"{BASE_URL}/PlateGetMode"
+    return url
+
 def set_device():
     url = f"{BASE_URL}/DeviceSetCommand"
     return url

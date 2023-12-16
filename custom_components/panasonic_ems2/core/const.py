@@ -49,6 +49,7 @@ from homeassistant.const import (
     CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
     PERCENTAGE,
     UnitOfEnergy,
+    UnitOfMass,
     UnitOfTemperature,
     UnitOfTime,
     UnitOfVolume
@@ -383,7 +384,7 @@ WASHING_MACHINE_PROGRESS = "0x02"
 WASHING_MACHINE_OPERATING_STATUS_OLD = "0x03"
 WASHING_MACHINE_REMAING_WASH_TIME= "0x13"
 WASHING_MACHINE_TIMER = "0x14"
-WASHING_MACHINE_TIMER_REMAINING_TIME = "0x15"
+WASHING_MACHINE_TIMER_REMAINING_TIME_OLD = "0x15"
 WASHING_MACHINE_ERROR_CODE = "0x19"
 WASHING_MACHINE_ENERGY = "0x1E"
 WASHING_MACHINE_OPERATING_STATUS = "0x50"
@@ -394,7 +395,7 @@ WASHING_MACHINE_CURRENT_MODE = "0x54"
 WASHING_MACHINE_CURRENT_PROGRESS = "0x55"
 WASHING_MACHINE_POSTPONE_DRYING = "0x56"
 WASHING_MACHINE_57 = "0x57"
-WASHING_MACHINE_58 = "0x58"
+WASHING_MACHINE_TIMER_REMAINING_TIME = "0x58"
 WASHING_MACHINE_59 = "0x59"
 WASHING_MACHINE_60 = "0x60"
 WASHING_MACHINE_61 = "0x61"
@@ -418,12 +419,29 @@ WASHING_MACHINE_LX128B_COMMANDS = [
 ]
 
 WASHING_MACHINE_HDH_COMMANDS = [
+    WASHING_MACHINE_OPERATING_STATUS_OLD,
+    WASHING_MACHINE_TIMER_REMAINING_TIME_OLD,
+    WASHING_MACHINE_53,
+    WASHING_MACHINE_57,
     WASHING_MACHINE_68
 ]
 
 WASHING_MACHINE_KBS_COMMANDS = [
-    WASHING_MACHINE_58
+    WASHING_MACHINE_TIMER_REMAINING_TIME_OLD
 ]
+
+WEIGHT_PLATE_GET_WEIGHT = "0x52"
+WEIGHT_PLATE_FOOD_NAME = "0x80"
+WEIGHT_PLATE_MANAGEMENT_MODE = "0x81"
+WEIGHT_PLATE_MANAGEMENT_VALUE = "0x82"
+WEIGHT_PLATE_AMOUNT_MAX = "0x83"
+WEIGHT_PLATE_BUY_DATE = "0x84"
+WEIGHT_PLATE_DUE_DATE = "0x85"
+WEIGHT_PLATE_COMMUNICATION_MODE = "0x8A"
+WEIGHT_PLATE_COMMUNICATION_TIME = "0x8B"
+WEIGHT_PLATE_TOTAL_WEIGHT = "0x8C"
+WEIGHT_PLATE_RESTORE_WEIGHT = "0x8D"
+WEIGHT_PLATE_LOW_BATTERY = "0x8E"
 
 MODEL_JP_TYPES = [
     "F655",
@@ -514,9 +532,13 @@ COMMANDS_TYPE= {
         WASHING_MACHINE_POSTPONE_DRYING,
         WASHING_MACHINE_PROGRESS,
         WASHING_MACHINE_WARM_WATER,
+        WASHING_MACHINE_52,
         WASHING_MACHINE_66,
         WASHING_MACHINE_67,
         WASHING_MACHINE_REMOTE_CONTROL
+    ],
+    str(DEVICE_TYPE_WEIGHT_PLATE): [
+        WEIGHT_PLATE_GET_WEIGHT
     ]
 }
 
@@ -1208,6 +1230,71 @@ WASHING_MACHINE_SENSORS: tuple[PanasonicSensorDescription, ...] = (
     )
 )
 
+WEIGHT_PLATE_SENSORS: tuple[PanasonicSensorDescription, ...] = (
+    PanasonicSensorDescription(
+        key=WEIGHT_PLATE_FOOD_NAME,
+        name="Food name",
+        icon="mdi:food"
+    ),
+    PanasonicSensorDescription(
+        key=WEIGHT_PLATE_BUY_DATE,
+        name="Buy Date",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        icon="mdi:clock"
+    ),
+    PanasonicSensorDescription(
+        key=WEIGHT_PLATE_DUE_DATE,
+        name="Due Date",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        icon="mdi:clock-outline"
+    ),
+    PanasonicSensorDescription(
+        key=WEIGHT_PLATE_MANAGEMENT_MODE,
+        name="Management Mode",
+        icon="mdi:cog"
+    ),
+    PanasonicSensorDescription(
+        key=WEIGHT_PLATE_MANAGEMENT_VALUE,
+        name="Management Value",
+        icon="mdi:cog"
+    ),
+    PanasonicSensorDescription(
+        key=WEIGHT_PLATE_AMOUNT_MAX,
+        name="Max Amount",
+        icon="mdi:cog"
+    ),
+    PanasonicSensorDescription(
+        key=WEIGHT_PLATE_COMMUNICATION_MODE,
+        name="Communication Mode",
+        icon="mdi:cog"
+    ),
+    PanasonicSensorDescription(
+        key=WEIGHT_PLATE_COMMUNICATION_TIME,
+        name="Communication Time",
+        icon="mdi:clock-outline"
+    ),
+    PanasonicSensorDescription(
+        key=WEIGHT_PLATE_TOTAL_WEIGHT,
+        name="Total Weight",
+        device_class=SensorDeviceClass.WEIGHT,
+        native_unit_of_measurement=UnitOfMass.GRAMS,
+        state_class=SensorStateClass.MEASUREMENT,
+        icon="mdi:weight-gram"
+    ),
+    PanasonicSensorDescription(
+        key=WEIGHT_PLATE_RESTORE_WEIGHT,
+        name="Restore Weight",
+        device_class=SensorDeviceClass.WEIGHT,
+        native_unit_of_measurement=UnitOfMass.GRAMS,
+        state_class=SensorStateClass.MEASUREMENT,
+        icon="mdi:weight-gram"
+    ),
+    PanasonicSensorDescription(
+        key=WEIGHT_PLATE_LOW_BATTERY,
+        name="Low Battery",
+        icon="mdi:battery-alert"
+    )
+)
 
 @dataclass
 class PanasonicSwitchDescription(

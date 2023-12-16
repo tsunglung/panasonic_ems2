@@ -5,6 +5,7 @@ from http import HTTPStatus
 import requests
 import json
 from datetime import datetime
+import pytz
 from typing import Literal
 
 from homeassistant.helpers.update_coordinator import UpdateFailed
@@ -33,6 +34,7 @@ from .const import (
     DEVICE_TYPE_DEHUMIDIFIER,
     DEVICE_TYPE_FRIDGE,
     DEVICE_TYPE_WASHING_MACHINE,
+    DEVICE_TYPE_WEIGHT_PLATE,
     ENTITY_MONTHLY_ENERGY,
     ENTITY_DOOR_OPENS,
     ENTITY_WASH_TIMES,
@@ -48,7 +50,19 @@ from .const import (
     WASHING_MACHINE_2020_MODELS,
     WASHING_MACHINE_OPERATING_STATUS,
     WASHING_MACHINE_POSTPONE_DRYING,
+    WASHING_MACHINE_TIMER_REMAINING_TIME,
     WASHING_MACHINE_PROGRESS,
+    WEIGHT_PLATE_FOOD_NAME,
+    WEIGHT_PLATE_MANAGEMENT_MODE,
+    WEIGHT_PLATE_MANAGEMENT_VALUE,
+    WEIGHT_PLATE_AMOUNT_MAX,
+    WEIGHT_PLATE_BUY_DATE,
+    WEIGHT_PLATE_DUE_DATE,
+    WEIGHT_PLATE_COMMUNICATION_MODE,
+    WEIGHT_PLATE_COMMUNICATION_TIME,
+    WEIGHT_PLATE_TOTAL_WEIGHT,
+    WEIGHT_PLATE_RESTORE_WEIGHT,
+    WEIGHT_PLATE_LOW_BATTERY,
     SET_COMMAND_TYPE,
     USER_INFO_TYPES,
     REQUEST_TIMEOUT
@@ -270,20 +284,17 @@ class PanasonicSmartHome(object):
         some workaround on info
         """
         try:
+            new = int(status)
             if ("RX" in model_type and
                     command_type == CLIMATE_PM25 and
                     int(status) == 65535
                 ):
                 new = -1
-            elif (model_type in ["HDH"] and
-                    command_type == WASHING_MACHINE_PROGRESS):
-                if int(status) >= 19:
-                    new = int(status) - 250
-                    if new >= 19:
-                        new = int(new) - 500
-                else:
-                    new = int(status)
-                new = int(status)
+            elif (model_type in ["HDH", "KBS", "LMS", "LM", "DDH", "MDH", "DW", "LX128B"] and
+                    command_type == WASHING_MACHINE_TIMER_REMAINING_TIME
+                ):
+                if int(status) > 65000:
+                    new = 0
             elif (model_type in ["XGS"] and
                     command_type in [
                         FRIDGE_FREEZER_TEMPERATURE,
@@ -296,8 +307,6 @@ class PanasonicSmartHome(object):
                     int(status) == 65535
                 ):
                 new = -1
-            else:
-                new = int(status)
         except:
             new = status
         return command_type, new
@@ -399,7 +408,6 @@ class PanasonicSmartHome(object):
             cmds_list = []
             for cmds in cmd_list:
                 if "list" not in cmds:
-                    _LOGGER.error(f"commands_list {commands_list}")
                     continue
                 lst = cmds["list"]
                 cmds_para = {}
@@ -435,6 +443,9 @@ class PanasonicSmartHome(object):
                                 parameters["Off"] = 0
                                 cmds_para[WASHING_MACHINE_POSTPONE_DRYING] = parameters
                                 cmds_name[WASHING_MACHINE_POSTPONE_DRYING] = cmd["CommandName"]
+                            if cmd_type == "0x15":
+                                cmds_para[WASHING_MACHINE_TIMER_REMAINING_TIME] = parameters
+                                cmds_name[WASHING_MACHINE_TIMER_REMAINING_TIME] = cmd["CommandName"]
 
                     cmds_para[cmd_type] = parameters
                     cmds_name[cmd_type] = cmd["CommandName"]
@@ -534,7 +545,7 @@ class PanasonicSmartHome(object):
             if "Information" in self._devices_info[gwid]:
                 self._devices_info[gwid]["Information"][0]["status"][ENTITY_UPDATE] = False
 
-        header = {"CPToken": self._cp_token}
+        header = {"CPToken": self._cp_token, "apptype": "Smart"}
         response = await self.request(
             method="GET", headers=header, endpoint=apis.get_update_info()
         )
@@ -551,6 +562,55 @@ class PanasonicSmartHome(object):
                 self._devices_info[gwid]["Information"][0]["status"][ENTITY_UPDATE_INFO] = response["UpdateInfo"][idx].get("updateVersion", "")
                 idx = idx + 1
         return True
+
+    @api_status
+    async def get_plate_info(self, device, check=False):
+        """ get weight plate info
+
+        Returns:
+        """
+
+        if not check:
+            return
+        gwid = device["GWID"]
+        header = {
+            "CPToken": self._cp_token,
+            "auth": device["Auth"],
+            "GWID": gwid
+        }
+        response = await self.request(
+            method="GET", headers=header, endpoint=apis.get_plate_mode()
+        )
+        info = {}
+        if isinstance(response, dict):
+            if "State" in response and response["State"] == "success":
+                info[WEIGHT_PLATE_FOOD_NAME] = response.get("Name", "")
+                info[WEIGHT_PLATE_MANAGEMENT_MODE] = response.get("ManagementMode", None)
+                info[WEIGHT_PLATE_MANAGEMENT_VALUE] = response.get("ManagementValue", None)
+                info[WEIGHT_PLATE_AMOUNT_MAX] = response.get("AmountMax", None)
+                tz = pytz.timezone('Asia/Taipei')
+                dt = response.get("BuyDate", None)
+                info[WEIGHT_PLATE_BUY_DATE] = datetime.fromtimestamp(int(dt), tz) if isinstance(dt, str) else None
+                dt = response.get("DueDate", None)
+                info[WEIGHT_PLATE_DUE_DATE] = datetime.fromtimestamp(int(dt), tz) if isinstance(dt, str) else None
+                info[WEIGHT_PLATE_COMMUNICATION_MODE] = response.get("CommunicationMode", None)
+                info[WEIGHT_PLATE_COMMUNICATION_TIME] = response.get("CommunicationTime", None)
+                info[WEIGHT_PLATE_TOTAL_WEIGHT] = response.get("TotalWeight", None)
+                info[WEIGHT_PLATE_RESTORE_WEIGHT] = response.get("RestoreWeight", None)
+                info[WEIGHT_PLATE_LOW_BATTERY] = response.get("LowBattery", None)
+            else:
+                info[WEIGHT_PLATE_FOOD_NAME] = None
+                info[WEIGHT_PLATE_MANAGEMENT_MODE] = None
+                info[WEIGHT_PLATE_MANAGEMENT_VALUE] = None
+                info[WEIGHT_PLATE_AMOUNT_MAX] = None
+                info[WEIGHT_PLATE_BUY_DATE] = None
+                info[WEIGHT_PLATE_DUE_DATE] = None
+                info[WEIGHT_PLATE_COMMUNICATION_MODE] = None
+                info[WEIGHT_PLATE_COMMUNICATION_TIME] = None
+                info[WEIGHT_PLATE_TOTAL_WEIGHT] = None
+                info[WEIGHT_PLATE_RESTORE_WEIGHT] = None
+                info[WEIGHT_PLATE_LOW_BATTERY] = None
+            self._devices_info[gwid]["Information"] = [{'DeviceID': 1, 'status': info}]
 
     @api_status
     async def get_devices_with_info(self):
@@ -603,12 +663,19 @@ class PanasonicSmartHome(object):
                 # _LOGGER.warning(f"gwid not in self._devices_info!")
                 self._devices_info[gwid] = device
                 gwid_status[gwid] = "force update"
+
+            if device_type == str(DEVICE_TYPE_WEIGHT_PLATE):
+                await asyncio.sleep(.1)
+                await self.get_plate_info(device, get_update_info)
+                continue
+
             if len(gwid_status[gwid]) < 1:
                 # No status code, it maybe offline or power off of washing machine or network busy
                 # _LOGGER.warning(f"gwid {gwid} is offline {self._devices_info[gwid]}!")
                 if device_type in [str(DEVICE_TYPE_WASHING_MACHINE)]:
                     self._devices_info[gwid]["Information"] = self._offline_info(device_type, model_type)
                 continue
+
             if not self.is_supported(model_type):
                 continue
             command_types = self._get_commands(

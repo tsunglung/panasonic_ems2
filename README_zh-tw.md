@@ -14,7 +14,8 @@ Home Assistant 的 Panasonic IoT TW [Android](https://play.google.com/store/apps
 ## 注意
 
 1. 本整合套件僅支援 Panasonic IoT 模組最新版本，請更新 Panasonic IoT 模組的韌體到最新版本。
-2. 這套件全新改寫，目前是在初期階段，因此有些許 bugs，歡迎回報。目前也只支援空調，洗衣機，冰箱和除溼機。
+2. 這套件全新改寫，歡迎回報。目前已支援空調，洗衣機，冰箱，除溼機，全熱交換機和重量感知板。
+3. 由於 Panasonic IoT 家電有很多型號，每個型號功能都不一樣，如果遇到問題，歡迎回報問題給我修復問題。
 
 # 安裝
 
