@@ -29,6 +29,7 @@ from .const import (
     CONF_REFRESH_TOKEN_TIMEOUT,
     COMMANDS_TYPE,
     EXTRA_COMMANDS,
+    EXCESS_COMMANDS,
     MODEL_JP_TYPES,
     CLIMATE_PM25,
     DEVICE_TYPE_DEHUMIDIFIER,
@@ -385,6 +386,7 @@ class PanasonicSmartHome(object):
         commands_type = []
         cmds = COMMANDS_TYPE.get(str(device_type), cmds_list)
         extra_cmds = EXTRA_COMMANDS.get(str(device_type), {}).get(model_type, [])
+        excess_cmds = EXCESS_COMMANDS.get(str(device_type), {}).get(model_type, [])
         if (int(device_type) == DEVICE_TYPE_FRIDGE and
                 model_type not in MODEL_JP_TYPES and
                 len(extra_cmds) < 1
@@ -392,6 +394,12 @@ class PanasonicSmartHome(object):
             new_cmds = cmds + extra_cmds + FRIDGE_XGS_COMMANDS
         else:
             new_cmds = cmds + extra_cmds
+
+        if len(excess_cmds) >= 1:
+            for cmd in excess_cmds:
+                if cmd in new_cmds:
+                    new_cmds.remove(cmd)
+
         for cmd in new_cmds:
             commands_type.append(
                 {"CommandType": cmd}
