@@ -357,7 +357,7 @@ FRIDGE_WINTER_MDOE = "0x5A"
 FRIDGE_SHOPPING_MODE = "0x5B"
 FRIDGE_GO_OUT_MODE = "0x5C"
 FRIDGE_NANOEX = "0x61"
-FRIDGE_63 = "0x63"
+FRIDGE_ERROR_CODE_JP = "0x63"
 
 FRIDGE_XGS_COMMANDS = [
                 FRIDGE_ECO,
@@ -445,7 +445,10 @@ WEIGHT_PLATE_LOW_BATTERY = "0x8E"
 
 MODEL_JP_TYPES = [
     "F655",
+    "F656",
     "F657",
+    "F658",
+    "F659",
     "LX128B"
 ]
 
@@ -555,7 +558,11 @@ EXTRA_COMMANDS = {
     },
     str(DEVICE_TYPE_FRIDGE): {
         "XGS": FRIDGE_XGS_COMMANDS,
-#        "F657": [FRIDGE_NANOEX]
+        "F655": [FRIDGE_ERROR_CODE_JP],
+        "F656": [FRIDGE_ERROR_CODE_JP],
+        "F657": [FRIDGE_ERROR_CODE_JP],
+        "F658": [FRIDGE_ERROR_CODE_JP],
+        "F659": [FRIDGE_ERROR_CODE_JP]
     },
     str(DEVICE_TYPE_WASHING_MACHINE): {
         "LX128B": WASHING_MACHINE_LX128B_COMMANDS,
@@ -1165,6 +1172,16 @@ FRIDGE_SENSORS: tuple[PanasonicSensorDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         device_class=SensorDeviceClass.TEMPERATURE,
         icon="mdi:fridge-outline"
+    ),
+    PanasonicSensorDescription(
+        key=FRIDGE_ERROR_CODE,
+        name="Error Code",
+        icon="mdi:alert-circle"
+    ),
+    PanasonicSensorDescription(
+        key=FRIDGE_ERROR_CODE_JP,
+        name="Error Code",
+        icon="mdi:alert-circle"
     ),
     PanasonicSensorDescription(
         key=ENTITY_DOOR_OPENS,
