@@ -27,12 +27,7 @@ from homeassistant.components.switch import (
 )
 
 from homeassistant.components.climate.const import (
-    HVAC_MODE_OFF,
-    HVAC_MODE_COOL,
-    HVAC_MODE_DRY,
-    HVAC_MODE_HEAT,
-    HVAC_MODE_AUTO,
-    HVAC_MODE_FAN_ONLY,
+    HVACMode,
     PRESET_BOOST,
     PRESET_ECO,
     PRESET_COMFORT,
@@ -131,12 +126,12 @@ AIRPURIFIER_PRESET_MODES = {
 }
 
 CLIMATE_AVAILABLE_MODES = {
-    HVAC_MODE_OFF: -1,
-    HVAC_MODE_COOL: 0,
-    HVAC_MODE_DRY: 1,
-    HVAC_MODE_FAN_ONLY: 2,
-    HVAC_MODE_AUTO: 3,
-    HVAC_MODE_HEAT: 4
+    HVACMode.OFF: -1,
+    HVACMode.COOL: 0,
+    HVACMode.DRY: 1,
+    HVACMode.FAN_ONLY: 2,
+    HVACMode.AUTO: 3,
+    HVACMode.HEAT: 4
 }
 
 CLIMATE_AVAILABLE_SWING_MODES = [
@@ -1195,7 +1190,7 @@ FRIDGE_SENSORS: tuple[PanasonicSensorDescription, ...] = (
         state_class=SensorStateClass.TOTAL_INCREASING,
         device_class=SensorDeviceClass.ENERGY,
         icon="mdi:flash"
-    ),
+    )
 )
 
 WASHING_MACHINE_SENSORS: tuple[PanasonicSensorDescription, ...] = (

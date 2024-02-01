@@ -2,19 +2,15 @@
 import logging
 import asyncio
 
-from homeassistant.components.climate import ClimateEntity
+from homeassistant.components.climate import ClimateEntityFeature, ClimateEntity
 from homeassistant.const import (
-    TEMP_CELSIUS,
+    UnitOfTemperature,
     ATTR_TEMPERATURE,
     STATE_UNAVAILABLE
 )
 from homeassistant.components.climate.const import (
-    HVAC_MODE_OFF,
+    HVACMode,
     PRESET_NONE,
-    SUPPORT_TARGET_TEMPERATURE,
-    SUPPORT_FAN_MODE,
-    SUPPORT_SWING_MODE,
-    SUPPORT_PRESET_MODE,
     SWING_ON,
     SWING_OFF,
     SWING_BOTH,
@@ -116,17 +112,17 @@ class PanasonicClimate(PanasonicBaseEntity, ClimateEntity):
     @property
     def supported_features(self) -> int:
         """Return the list of supported features."""
-        features = SUPPORT_TARGET_TEMPERATURE
+        features = ClimateEntityFeature.TARGET_TEMPERATURE
         status = self.get_status(self.coordinator.data)
 
         preset_mode = False
         if self._device_type == DEVICE_TYPE_CLIMATE:
             if (status.get(CLIMATE_SWING_VERTICAL_LEVEL, None) is not None and
                 (status.get(CLIMATE_SWING_HORIZONTAL_LEVEL, None) is not None)):
-                features |= SUPPORT_SWING_MODE
+                features |= ClimateEntityFeature.SWING_MODE
 
             if status.get(CLIMATE_FAN_SPEED, None) is not None:
-                features |= SUPPORT_FAN_MODE
+                features |= ClimateEntityFeature.FAN_MODE
 
             for st in status:
                 if st in CLIMATE_AVAILABLE_PRESET_MODES:
@@ -135,16 +131,16 @@ class PanasonicClimate(PanasonicBaseEntity, ClimateEntity):
 
         elif self._device_type == DEVICE_TYPE_ERV:
             if status.get(ERV_FAN_SPEED, None) is not None:
-                features |= SUPPORT_FAN_MODE
+                features |= ClimateEntityFeature.FAN_MODE
 
         if preset_mode:
-            features |= SUPPORT_PRESET_MODE
+            features |= ClimateEntityFeature.PRESET_MODE
 
         return features
 
     @property
     def temperature_unit(self) -> str:
-        return TEMP_CELSIUS
+        return UnitOfTemperature.CELSIUS
 
     @property
     def hvac_mode(self) -> str:
@@ -164,18 +160,18 @@ class PanasonicClimate(PanasonicBaseEntity, ClimateEntity):
         if is_on:
             if status.get(operation_mode, None) is None:
                 _LOGGER.error("Can not get status!")
-                return HVAC_MODE_OFF
+                return HVACMode.OFF
             value = status.get(operation_mode, None)
             #if value is None:
             #    return STATE_UNAVAILABLE
             return get_key_from_dict(available_modes, int(value))
 
-        return HVAC_MODE_OFF
+        return HVACMode.OFF
 
     @property
     def hvac_modes(self) -> list:
         """Return the list of available hvac operation modes."""
-        hvac_modes = [HVAC_MODE_OFF]
+        hvac_modes = [HVACMode.OFF]
         available_modes = {}
 
         if self._device_type == DEVICE_TYPE_ERV:
@@ -206,7 +202,7 @@ class PanasonicClimate(PanasonicBaseEntity, ClimateEntity):
         is_on = bool(int(status.get(power, 0)))
         gwid = self.device_gwid
         device_id = self.device_id
-        if hvac_mode == HVAC_MODE_OFF:
+        if hvac_mode == HVACMode.OFF:
             await self.client.set_device(gwid, device_id, power, 0)
         else:
             mode = CLIMATE_AVAILABLE_MODES.get(hvac_mode)

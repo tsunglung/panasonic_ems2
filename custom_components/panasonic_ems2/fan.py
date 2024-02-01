@@ -3,9 +3,7 @@ import logging
 import asyncio
 
 from homeassistant.components.fan import (
-    SUPPORT_OSCILLATE,
-    SUPPORT_PRESET_MODE,
-    SUPPORT_SET_SPEED,
+    FanEntityFeature,
     FanEntity
 )
 
@@ -99,22 +97,22 @@ class PanasonicFan(PanasonicBaseEntity, FanEntity):
     @property
     def supported_features(self) -> int:
         """Return the list of supported features."""
-        feature = SUPPORT_SET_SPEED
+        feature = FanEntityFeature.SET_SPEED
         status = self.get_status(self.coordinator.data)
 
         if self._device_type == DEVICE_TYPE_AIRPURIFIER:
             if status.get(AIRPURIFIER_NANOEX, None) is not None:
-                feature |= SUPPORT_PRESET_MODE
+                feature |= FanEntityFeature.PRESET_MODE
 
         if self._device_type == DEVICE_TYPE_FAN:
             if status.get(FAN_OPERATING_MODE, None) is not None:
-                feature |= SUPPORT_PRESET_MODE
+                feature |= FanEntityFeature.PRESET_MODE
 
             if status.get(FAN_OSCILLATE, None) is not None:
-                feature |= SUPPORT_OSCILLATE
+                feature |= FanEntityFeature.OSCILLATE
 
         if self._device_type == DEVICE_TYPE_WASHING_MACHINE:
-            feature |= SUPPORT_PRESET_MODE
+            feature |= FanEntityFeature.PRESET_MODE
 
         return feature
 
