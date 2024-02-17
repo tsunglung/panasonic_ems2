@@ -290,15 +290,17 @@ class PanasonicClimate(PanasonicBaseEntity, ClimateEntity):
             available_fan_modes = CLIMATE_AVAILABLE_FAN_MODES
 
         rng = self.client.get_range(self.device_gwid, fan_mode)
-        max = rng.get("Max", 1)
+        if "Max" in rng:
+            max = rng.get("Max", 1)
 
-        for mode, value in available_fan_modes.items():
-            if max >= value:
-                modes.append(mode)
+            for mode, value in available_fan_modes.items():
+                if max >= value:
+                    modes.append(mode)
 
-        if len(modes) <= 1:
-            modes.append("Auto")
-
+            if len(modes) <= 1:
+                modes.append("Auto")
+        else:
+            modes = list(rng.keys())
         return modes
 
     async def async_set_fan_mode(self, fan_mode) -> None:
