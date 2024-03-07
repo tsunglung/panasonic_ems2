@@ -109,6 +109,7 @@ class PanasonicSmartHome(object):
         self.password = password
         self._session = session
         self._devices = []
+        self._select_devices = []
         self._commands = []
         self._devices_info = {}
         self._commands_info = {}
@@ -202,6 +203,39 @@ class PanasonicSmartHome(object):
     @property
     def devices_number(self) -> int:
         return len(self._devices)
+
+    async def set_select_devices(self, devices):
+        """
+        set select devices
+        """
+        self._select_devices = list(devices.values())
+
+    async def get_user_accounts_number(self):
+        """
+        get the number of user accounts
+        """
+        accounts = 0
+        store = Store(self.hass, 1, f"{DOMAIN}/tokens.json")
+        data = await store.async_load() or None
+        if not data:
+            return 1
+
+        for _, value in data.items():
+            token_timeout = value[CONF_TOKEN_TIMEOUT]
+            now = datetime.now()
+            timeout = datetime(
+                int(token_timeout[:4]),
+                int(token_timeout[4:6]),
+                int(token_timeout[6:8]),
+                int(token_timeout[8:10]),
+                int(token_timeout[10:12]),
+                int(token_timeout[12:])
+            )
+
+            if int(timeout.timestamp() - now.timestamp()) > 0:
+                accounts = accounts + 1
+
+        return accounts
 
     @api_status
     async def login(self):
@@ -514,7 +548,7 @@ class PanasonicSmartHome(object):
                 return False
             for gwinfo in response["GwList"]:
                 gwid = gwinfo["GwID"]
-                if "Information" not in self._devices_info[gwid]:
+                if "Information" not in self._devices_info.get(gwid, {}):
                     continue
                 device_type = self._devices_info[gwid]["DeviceType"]
                 if info == "Other":
@@ -635,7 +669,11 @@ class PanasonicSmartHome(object):
         self._refactor_cmds_paras(self._commands_info)
 
         await asyncio.sleep(.5)
-        header = {"CPToken": self._cp_token}
+
+        header = {
+            "CPToken": self._cp_token,
+            "apptype": "Smart"
+        }
         response = await self.request(
             method="GET", headers=header, endpoint=apis.get_device_status()
         )
@@ -667,6 +705,11 @@ class PanasonicSmartHome(object):
             gwid = device["GWID"]
             device_type = device["DeviceType"]
             model_type = device["ModelType"]
+
+            if len(self._select_devices) >= 1:
+                if gwid not in self._select_devices:
+                    continue
+
             if gwid not in self._devices_info:
                 # _LOGGER.warning(f"gwid not in self._devices_info!")
                 self._devices_info[gwid] = device

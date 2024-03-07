@@ -54,10 +54,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         raise ConfigEntryNotReady
 
     update_interval = entry.options.get(CONF_UPDATE_INTERVAL, None)
+    account_number = await client.get_user_accounts_number()
     await client.get_user_devices()
+    select_devices = entry.options.get("select_devices", {})
+    await client.set_select_devices(select_devices)
+
     recommand_interval = DEFAULT_UPDATE_INTERVAL
-    if isinstance(client.devices_number, int):
-        recommand_interval = int(3600 / (150 / (client.devices_number + 1)))
+    if len(select_devices) >= 1:
+        recommand_interval = int(3600 / (150 / (len(select_devices) + 1)) / account_number)
+    elif isinstance(client.devices_number, int):
+        recommand_interval = int(3600 / (150 / (client.devices_number + 1)) / account_number)
     if update_interval is None:
         # The maximal API access is 150 per hour
         update_interval = max(recommand_interval, DEFAULT_UPDATE_INTERVAL)

@@ -1,18 +1,20 @@
 """Config flow to configure Panasonic Samrt Home component."""
 from collections import OrderedDict
-from typing import Optional
+from typing import Optional, Any
 import asyncio
 import voluptuous as vol
 
 from homeassistant.config_entries import (
     CONN_CLASS_CLOUD_POLL,
+    ConfigEntry,
     ConfigFlow,
-    OptionsFlow,
-    ConfigEntry
+    OptionsFlow
 )
 from homeassistant.const import CONF_USERNAME, CONF_NAME, CONF_PASSWORD
 from homeassistant.core import callback
+from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import ConfigEntryNotReady
+import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
@@ -20,13 +22,10 @@ from .core import PanasonicSmartHome
 from .core.exceptions import Ems2ExceedRateLimit, Ems2LoginFailed
 from .core.const import (
     CONF_UPDATE_INTERVAL,
-    CONF_CPTOKEN,
-    CONF_TOKEN_TIMEOUT,
-    CONF_REFRESH_TOKEN,
-    CONF_REFRESH_TOKEN_TIMEOUT,
     DEFAULT_UPDATE_INTERVAL,
     DOMAIN
 )
+
 
 class PanasonicSmartHomeFlowHandler(ConfigFlow, domain=DOMAIN):
     """Handle a Panasonic Samrt Home config flow."""
@@ -39,6 +38,8 @@ class PanasonicSmartHomeFlowHandler(ConfigFlow, domain=DOMAIN):
         self._username: Optional[str] = None
         self._password: Optional[str] = None
         self._errors: Optional[dict] = {}
+        self.login_info: Optional[dict] = {}
+        self.cloud_devices: dict[str, dict[str, Any]] = {}
 
     @staticmethod
     @callback
@@ -49,7 +50,7 @@ class PanasonicSmartHomeFlowHandler(ConfigFlow, domain=DOMAIN):
     async def async_step_user(
             self,
             user_input: Optional[ConfigType] = None
-    ):  # pylint: disable=arguments-differ
+    ) -> FlowResult:
         """Handle a flow initialized by the user."""
         if self._async_current_entries():
             return self.async_abort(reason="single_instance_allowed")
@@ -67,7 +68,7 @@ class PanasonicSmartHomeFlowHandler(ConfigFlow, domain=DOMAIN):
 
             try:
                 # force login here
-                login_info = await client.async_check_tokens()
+                self.login_info = await client.async_check_tokens()
                 self._name = self._username
                 if not client.token:
                     raise ConfigEntryNotReady
@@ -75,20 +76,29 @@ class PanasonicSmartHomeFlowHandler(ConfigFlow, domain=DOMAIN):
                 await self.async_set_unique_id(self._username)
 
                 await asyncio.sleep(1)  # add sleep 1 to avoid frequency request
-                devices = await client.get_user_devices()
-                if len(devices) < 1:
+                devices_raw = await client.get_user_devices()
+                if len(devices_raw) < 1:
                     self._errors["status"] = "error"
                     self._errors["base"] = "network_busy"
                     raise ConfigEntryNotReady
+                else:
+                    self.login_info[CONF_USERNAME] = self._username
+                    self.login_info[CONF_PASSWORD] = self._password
+                    if len(devices_raw[0]) == 1:
+                        return self._async_get_entry(self.login_info)
+                    self.cloud_devices = {}
+                    for device in devices_raw:
+                        name = device["NickName"]
+                        model = device["Model"]
+                        list_name = f"{name} - {model}"
+                        self.cloud_devices[list_name] = device
+                    return await self.async_step_select()
 
-                login_info[CONF_USERNAME] = self._username
-                login_info[CONF_PASSWORD] = self._password
-                return self._async_get_entry(login_info)
             except Ems2ExceedRateLimit:
                 self._errors["base"] = "rate_limit"
             except Ems2LoginFailed:
                 self._errors["base"] = "auth"
-            except:
+            except Exception as e:
                 self._errors["status"] = "error"
                 self._errors["base"] = "connection_error"
 
@@ -102,6 +112,30 @@ class PanasonicSmartHomeFlowHandler(ConfigFlow, domain=DOMAIN):
             step_id="user",
             data_schema=vol.Schema(fields),
             errors=self._errors
+        )
+
+    def extract_cloud_info(self, devices: list[str]) -> None:
+        """Extract the cloud info."""
+        select_devices = {}
+        for name in devices:
+            select_devices[name] = self.cloud_devices[name]["GWID"]
+        self.login_info["select_devices"] = select_devices
+
+    async def async_step_select(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Handle multiple cloud devices found."""
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            self.extract_cloud_info(user_input["select_devices"])
+            return self._async_get_entry(self.login_info)
+
+        select_schema = vol.Schema(
+            {vol.Required("select_devices"): cv.multi_select(list(self.cloud_devices))}
+        )
+
+        return self.async_show_form(
+            step_id="select", data_schema=select_schema, errors=errors
         )
 
     @property
@@ -142,7 +176,9 @@ class OptionsFlowHandler(OptionsFlow):
         """Initialize options flow."""
         self.config_entry = config_entry
 
-    async def async_step_init(self, user_input=None):
+    async def async_step_init(
+        self, user_input=None
+    ) -> FlowResult:
         """Manage options."""
         if user_input is not None:
             if len(user_input.get(CONF_USERNAME, "")) >= 1:
