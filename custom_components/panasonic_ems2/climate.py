@@ -303,7 +303,7 @@ class PanasonicClimate(PanasonicBaseEntity, ClimateEntity):
             modes = list(rng.keys())
         return modes
 
-    async def async_set_fan_mode(self, fan_mode) -> None:
+    async def async_set_fan_mode(self, mode) -> None:
         """Set new fan mode."""
         if self._device_type == DEVICE_TYPE_ERV:
             fan_mode = ERV_OPERATING_MODE
@@ -312,7 +312,7 @@ class PanasonicClimate(PanasonicBaseEntity, ClimateEntity):
             fan_mode = CLIMATE_FAN_SPEED
             available_fan_modes = CLIMATE_AVAILABLE_FAN_MODES
 
-        value = available_fan_modes[fan_mode]
+        value = available_fan_modes[mode]
         gwid = self.device_gwid
         device_id = self.device_id
 
