@@ -5,7 +5,7 @@ from http import HTTPStatus
 import requests
 import json
 from datetime import datetime
-import pytz
+from dateutil import tz as timezone
 from typing import Literal
 
 from homeassistant.helpers.update_coordinator import UpdateFailed
@@ -630,7 +630,7 @@ class PanasonicSmartHome(object):
                 info[WEIGHT_PLATE_MANAGEMENT_MODE] = response.get("ManagementMode", None)
                 info[WEIGHT_PLATE_MANAGEMENT_VALUE] = response.get("ManagementValue", None)
                 info[WEIGHT_PLATE_AMOUNT_MAX] = response.get("AmountMax", None)
-                tz = pytz.timezone('Asia/Taipei')
+                tz = timezone.gettz('Asia/Taipei')
                 dt = response.get("BuyDate", None)
                 info[WEIGHT_PLATE_BUY_DATE] = datetime.fromtimestamp(int(dt), tz) if isinstance(dt, str) else None
                 dt = response.get("DueDate", None)
