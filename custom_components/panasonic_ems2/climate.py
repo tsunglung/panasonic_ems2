@@ -112,7 +112,7 @@ class PanasonicClimate(PanasonicBaseEntity, ClimateEntity):
     @property
     def supported_features(self) -> int:
         """Return the list of supported features."""
-        features = ClimateEntityFeature.TARGET_TEMPERATURE
+        features = ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.TURN_OFF | ClimateEntityFeature.TURN_ON
         status = self.get_status(self.coordinator.data)
 
         preset_mode = False

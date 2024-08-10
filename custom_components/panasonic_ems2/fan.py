@@ -22,6 +22,7 @@ from .core.const import (
     FAN_SPEED,
     AIRPURIFIER_OPERATING_MODE,
     AIRPURIFIER_NANOEX,
+    AIRPURIFIER_NANOEX_PRESET,
     AIRPURIFIER_PRESET_MODES
 )
 
@@ -97,7 +98,7 @@ class PanasonicFan(PanasonicBaseEntity, FanEntity):
     @property
     def supported_features(self) -> int:
         """Return the list of supported features."""
-        feature = FanEntityFeature.SET_SPEED
+        feature = FanEntityFeature.SET_SPEED | FanEntityFeature.TURN_OFF | FanEntityFeature.TURN_ON
         status = self.get_status(self.coordinator.data)
 
         if self._device_type == DEVICE_TYPE_AIRPURIFIER:
@@ -160,30 +161,28 @@ class PanasonicFan(PanasonicBaseEntity, FanEntity):
             # If operation mode was set the device must not be turned on.
             await self.async_set_preset_mode(preset_mode)
         else:
-            await self.client.set_device(self.device, FAN_POWER, 1)
+            await self.client.set_device(gwid, device_id, FAN_POWER, 1)
         await asyncio.sleep(1)
         await self.client.update_device(gwid, device_id)
-        await self.async_write_ha_state()
+        self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs) -> None:
         """Turn the device off."""
         gwid = self.device_gwid
         device_id = self.device_id
-        await self.client.set_device(self.device, FAN_POWER, 0)
+        await self.client.set_device(gwid, device_id, FAN_POWER, 0)
         await asyncio.sleep(1)
         await self.client.update_device(gwid, device_id)
-        await self.async_write_ha_state()
+        self.async_write_ha_state()
 
     @property
     def preset_modes(self) -> list[str] | None:
         """Get the list of available preset modes."""
-        modes = []
+        modes = ["None"]
         if self._device_type == DEVICE_TYPE_FAN:
             modes = list(FAN_PRESET_MODES.keys())
         if self._device_type == DEVICE_TYPE_AIRPURIFIER:
-            for field in self.fields:
-                if AIRPURIFIER_NANOEX == field:
-                    modes.append(AIRPURIFIER_PRESET_MODES[field])
+            modes.append(AIRPURIFIER_PRESET_MODES[AIRPURIFIER_NANOEX])
         return modes
 
     @property
@@ -195,11 +194,9 @@ class PanasonicFan(PanasonicBaseEntity, FanEntity):
             value = status.get(FAN_OPERATING_MODE, 0)
             preset_mode = get_key_from_dict(FAN_PRESET_MODES, value)
         if self._device_type == DEVICE_TYPE_AIRPURIFIER:
-            value = status.get(FAN_OPERATING_MODE, 0)
-            for key, mode in AIRPURIFIER_PRESET_MODES.items():
-                if key in status and status[key]:
-                    preset_mode = mode
-                    break
+            value = status.get(AIRPURIFIER_NANOEX, 0)
+            if value != 0:
+                return AIRPURIFIER_PRESET_MODES[AIRPURIFIER_NANOEX]
         return preset_mode
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
@@ -208,25 +205,33 @@ class PanasonicFan(PanasonicBaseEntity, FanEntity):
         device_id = self.device_id
         if self._device_type == DEVICE_TYPE_FAN:
             await self.client.set_device(
-                self.device, FAN_OPERATING_MODE, FAN_PRESET_MODES[preset_mode])
+                gwid, device_id, FAN_OPERATING_MODE, FAN_PRESET_MODES[preset_mode], 1)
         if self._device_type == DEVICE_TYPE_AIRPURIFIER:
-            await self.client.set_device(
-                self.device, FAN_OPERATING_MODE, AIRPURIFIER_PRESET_MODES[preset_mode])
+            if preset_mode == AIRPURIFIER_NANOEX_PRESET:
+                await self.client.set_device(
+                    gwid, device_id, AIRPURIFIER_NANOEX, 1
+                )
+            elif preset_mode == "None":
+                await self.client.set_device(
+                    gwid, device_id, AIRPURIFIER_NANOEX, 0
+                )
+        #    await self.client.set_device(
+        #        gwid, device_id, FAN_OPERATING_MODE, AIRPURIFIER_PRESET_MODES[preset_mode])
         await self.client.update_device(gwid, device_id)
-        await self.async_write_ha_state()
+        self.async_write_ha_state()
 
     async def async_set_percentage(self, percentage: int) -> None:
         """Set the speed percentage of the fan."""
         gwid = self.device_gwid
         device_id = self.device_id
         if percentage == 0:
-            await self.client.set_device(self.device, FAN_POWER, 0)
+            await self.client.set_device(gwid, device_id, FAN_POWER, 0)
         else:
             if self._device_type == DEVICE_TYPE_FAN:
-                await self.client.set_device(self.device, FAN_SPEED, percentage)
+                await self.client.set_device(gwid, device_id, FAN_SPEED, percentage)
             if self._device_type == DEVICE_TYPE_AIRPURIFIER:
                 await self.client.set_device(
-                    self.device, AIRPURIFIER_OPERATING_MODE, percentage / self.percentage_step)
+                    gwid, device_id, AIRPURIFIER_OPERATING_MODE, percentage / self.percentage_step)
         await self.client.update_device(gwid, device_id)
         self.async_write_ha_state()
 
@@ -245,6 +250,6 @@ class PanasonicFan(PanasonicBaseEntity, FanEntity):
         gwid = self.device_gwid
         device_id = self.device_id
         if self._device_type == DEVICE_TYPE_FAN:
-            await self.client.set_device(self.device, FAN_OSCILLATE, oscillating)
+            await self.client.set_device(gwid, device_id, FAN_OSCILLATE, oscillating)
         await self.client.update_device(gwid, device_id)
         self.async_write_ha_state()

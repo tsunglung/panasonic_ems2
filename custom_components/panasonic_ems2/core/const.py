@@ -42,6 +42,7 @@ from homeassistant.components.climate.const import (
 from homeassistant.const import (
     EntityCategory,
     CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
+    CONCENTRATION_PARTS_PER_BILLION,
     PERCENTAGE,
     UnitOfEnergy,
     UnitOfMass,
@@ -108,15 +109,25 @@ DEVICE_TYPE_ERV = 14
 DEVICE_TYPE_FAN = 15
 DEVICE_TYPE_WEIGHT_PLATE = 23
 
+AIRPURIFIER_POWER = "0x00"
 AIRPURIFIER_OPERATING_MODE = "0x01"
 AIRPURIFIER_TIMER_ON = "0x02"
 AIRPURIFIER_TIMER_OFF = "0x03"
 AIRPURIFIER_AIR_QUALITY = "0x04"
 AIRPURIFIER_RESET_FILTER_NOTIFY = "0x05"
+AIRPURIFIER_HEAP_REPLACE_NOTIFY = "0x06"
 AIRPURIFIER_NANOEX = "0x07"
-AIRPURIFIER_BUZZER = "0x08"
-AIRPURIFIER_PM25 = "0x61"
-AIRPURIFIER_LIGHT = "0x62"
+AIRPURIFIER_LOCK = "0x08"
+AIRPURIFIER_ERROR_CODE = "0x09"
+AIRPURIFIER_PM25 = "0x50"
+AIRPURIFIER_51 = "0x51"
+AIRPURIFIER_52 = "0x52"
+AIRPURIFIER_TIMER_OFF_NEW = "0x53"
+AIRPURIFIER_FORMALDEHYDE = "0x54"
+AIRPURIFIER_PET_MODE = "0x55"
+AIRPURIFIER_LIGHT = "0x56"
+AIRPURIFIER_BUZZER = "0x57"
+#AIRPURIFIER_LIGHT = "0x62"
 AIRPURIFIER_RUNNING_TIME = "0x63"
 AIRPURIFIER_RESERVED = "0x7F"
 
@@ -126,6 +137,7 @@ AIRPURIFIER_PRESET_MODES = {
 }
 
 CLIMATE_AVAILABLE_MODES = {
+#    HVACMode.OFF: -1,
     HVACMode.COOL: 0,
     HVACMode.DRY: 1,
     HVACMode.FAN_ONLY: 2,
@@ -448,14 +460,21 @@ MODEL_JP_TYPES = [
 
 COMMANDS_TYPE= {
     str(DEVICE_TYPE_AIRPURIFIER): [
+        AIRPURIFIER_POWER,
         AIRPURIFIER_OPERATING_MODE,
-        AIRPURIFIER_TIMER_ON,
-        AIRPURIFIER_TIMER_OFF,
-        AIRPURIFIER_AIR_QUALITY,
+        #AIRPURIFIER_TIMER_ON,
+        #AIRPURIFIER_TIMER_OFF,
+        #AIRPURIFIER_AIR_QUALITY,
+        AIRPURIFIER_HEAP_REPLACE_NOTIFY,
         AIRPURIFIER_NANOEX,
+        AIRPURIFIER_PET_MODE,
         AIRPURIFIER_BUZZER,
         AIRPURIFIER_PM25,
-        AIRPURIFIER_LIGHT
+        AIRPURIFIER_LIGHT,
+        AIRPURIFIER_51,
+        AIRPURIFIER_52,
+        AIRPURIFIER_TIMER_OFF_NEW,
+        AIRPURIFIER_FORMALDEHYDE
     ],
     str(DEVICE_TYPE_CLIMATE): [
         CLIMATE_POWER,
@@ -590,6 +609,14 @@ EXCESS_COMMANDS = {
 }
 
 SET_COMMAND_TYPE = {
+    str(DEVICE_TYPE_AIRPURIFIER): {
+        AIRPURIFIER_POWER: 0,
+        AIRPURIFIER_OPERATING_MODE: 1,
+        AIRPURIFIER_NANOEX: 135,
+        AIRPURIFIER_PET_MODE: 85,
+        AIRPURIFIER_LIGHT: 86,
+        AIRPURIFIER_BUZZER: 87
+    },
     str(DEVICE_TYPE_CLIMATE): {
         CLIMATE_PRESET_MODE: 1,
         CLIMATE_TARGET_TEMPERATURE: 3,
@@ -619,6 +646,9 @@ SET_COMMAND_TYPE = {
         DEHUMIDIFIER_BUZZER: 152,
         DEHUMIDIFIER_TIMER_ON: 213
     },
+    str(DEVICE_TYPE_ERV): {
+        ERV_POWER: 0
+    },
     str(DEVICE_TYPE_WASHING_MACHINE): {
         WASHING_MACHINE_ENABLE: 1,
         WASHING_MACHINE_TIMER: 20,
@@ -645,9 +675,9 @@ AIRPURIFIER_BINARY_SENSORS: tuple[PanasonicBinarySensorDescription, ...] = (
         device_class=BinarySensorDeviceClass.UPDATE
     ),
     PanasonicBinarySensorDescription(
-        key=ENTITY_EMPTY,
-        name="Empty",
-        icon="mdi:cog"
+        key=AIRPURIFIER_HEAP_REPLACE_NOTIFY,
+        name="HEAP Filter Replace",
+        icon='mdi:filter-variant-remove'
     )
 )
 
@@ -847,6 +877,14 @@ AIRPURIFIER_SELECTS: tuple[PanasonicSelectDescription, ...] = (
         options_value=["0", "1", "2"]
     ),
     PanasonicSelectDescription(
+        key=AIRPURIFIER_OPERATING_MODE,
+        name="Fan Mode",
+        entity_category=EntityCategory.CONFIG,
+        icon='mdi:fan',
+        options=["Auto", "Mute", "Week", "Middle", "Strong"],
+        options_value=["0", "1", "2", "3", "4"]
+    ),
+    PanasonicSelectDescription(
         key=AIRPURIFIER_RESERVED,
         name="Reserved",
         entity_category=EntityCategory.CONFIG,
@@ -1015,11 +1053,24 @@ AIRPURIFIER_SENSORS: tuple[PanasonicSensorDescription, ...] = (
         icon="mdi:chemical-weapon"
     ),
     PanasonicSensorDescription(
+        key=AIRPURIFIER_FORMALDEHYDE,
+        name="Formaldehyde",
+        native_unit_of_measurement=CONCENTRATION_PARTS_PER_BILLION,
+        state_class=SensorStateClass.MEASUREMENT,
+#        device_class=SensorDeviceClass.PM25,
+        icon="mdi:chemical-weapon"
+    ),
+    PanasonicSensorDescription(
         key=AIRPURIFIER_RUNNING_TIME,
         name="Running Time",
         native_unit_of_measurement=UnitOfTime.MINUTES,
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:clock-outline"
+    ),
+    PanasonicSensorDescription(
+        key=AIRPURIFIER_ERROR_CODE,
+        name="Error Code",
+        icon="mdi:alert-circle"
     )
 )
 
@@ -1336,13 +1387,19 @@ AIRPURIFIER_SWITCHES: tuple[PanasonicSwitchDescription, ...] = (
         key=AIRPURIFIER_RESET_FILTER_NOTIFY,
         name="Reset Filter Notify",
         device_class=SwitchDeviceClass.SWITCH,
-        icon='mdi:volume-high'
+        icon='mdi:filter-remove'
     ),
     PanasonicSwitchDescription(
         key=AIRPURIFIER_BUZZER,
         name="Buzzer",
         device_class=SwitchDeviceClass.SWITCH,
         icon='mdi:volume-high'
+    ),
+    PanasonicSwitchDescription(
+        key=AIRPURIFIER_PET_MODE,
+        name="Pet Mode",
+        device_class=SwitchDeviceClass.SWITCH,
+        icon='mdi:paw'
     )
 )
 
