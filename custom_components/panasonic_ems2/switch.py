@@ -112,6 +112,9 @@ class PanasonicSwitch(PanasonicBaseEntity, SwitchEntity):
         avaiable = status.get(self.entity_description.key, None)
         if avaiable is None:
             return STATE_UNAVAILABLE
+        state = status.get(self.entity_description.key)
+        if not isinstance(state, int):
+            return STATE_UNAVAILABLE
         return bool(int(status.get(self.entity_description.key, 0)))
 
     async def async_turn_on(self) -> None:
