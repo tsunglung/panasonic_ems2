@@ -99,9 +99,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     }
 
     # init setup for each supported domains
-    for domain in DOMAINS:
-        hass.async_create_task(hass.config_entries.async_forward_entry_setup(
-            entry, domain))
+    await hass.config_entries.async_forward_entry_setups(entry, DOMAINS)
 
     # add update handler
     if not entry.update_listeners:
