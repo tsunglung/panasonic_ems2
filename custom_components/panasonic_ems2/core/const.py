@@ -107,6 +107,7 @@ DEVICE_TYPE_DEHUMIDIFIER = 4
 DEVICE_TYPE_AIRPURIFIER = 8
 DEVICE_TYPE_ERV = 14
 DEVICE_TYPE_FAN = 15
+DEVICE_TYPE_LIGHT = 17
 DEVICE_TYPE_WEIGHT_PLATE = 23
 
 AIRPURIFIER_POWER = "0x00"
@@ -384,6 +385,29 @@ FRIDGE_2020_MODELS = [
     "NR-F606HX-X1", "NR-F656WX-X1"
 ]
 
+LIGHT_POWER = "0x00"
+LIGHT_PERCENTAGE = "0x01"
+LIGHT_OPERATION_STATE = "0x70"
+LIGHT_CHANNEL_1_TIMER_ON = "0x71"
+LIGHT_CHANNEL_1_TIMER_OFF = "0x72"
+LIGHT_MAINTAIN_MODE = "0x73"
+LIGHT_CHANNEL_2_TIMER_ON = "0x74"
+LIGHT_CHANNEL_2_TIMER_OFF = "0x75"
+LIGHT_CHANNEL_3_TIMER_ON = "0x76"
+LIGHT_CHANNEL_3_TIMER_OFF = "0x77"
+LIGHT_RESERVED = "0x7F"
+
+LIGHT_WTY_COMMANDS = [
+#    LIGHT_OPERATION_STATE,
+    LIGHT_CHANNEL_1_TIMER_ON,
+    LIGHT_CHANNEL_1_TIMER_OFF,
+    LIGHT_MAINTAIN_MODE,
+    LIGHT_CHANNEL_2_TIMER_ON,
+    LIGHT_CHANNEL_2_TIMER_OFF,
+    LIGHT_CHANNEL_3_TIMER_ON,
+    LIGHT_CHANNEL_3_TIMER_OFF
+]
+
 WASHING_MACHINE_POWER = "0x00"
 WASHING_MACHINE_ENABLE = "0x01"
 WASHING_MACHINE_PROGRESS = "0x02"
@@ -535,6 +559,9 @@ COMMANDS_TYPE= {
         FRIDGE_SHOPPING_MODE,
         FRIDGE_GO_OUT_MODE
     ],
+    str(DEVICE_TYPE_LIGHT): [
+        LIGHT_POWER
+    ],
     str(DEVICE_TYPE_WASHING_MACHINE): [
         WASHING_MACHINE_ENABLE,
         WASHING_MACHINE_REMAING_WASH_TIME,
@@ -578,6 +605,9 @@ EXTRA_COMMANDS = {
         "F658": [FRIDGE_ERROR_CODE_JP],
         "F659": [FRIDGE_ERROR_CODE_JP]
     },
+    str(DEVICE_TYPE_LIGHT): {
+        "WTY": LIGHT_WTY_COMMANDS
+    },
     str(DEVICE_TYPE_WASHING_MACHINE): {
         "LX128B": WASHING_MACHINE_LX128B_COMMANDS,
         "DDH": WASHING_MACHINE_HDH_COMMANDS,
@@ -601,6 +631,8 @@ EXCESS_COMMANDS = {
     str(DEVICE_TYPE_ERV): {
     },
     str(DEVICE_TYPE_FRIDGE): {
+    },
+    str(DEVICE_TYPE_LIGHT): {
     },
     str(DEVICE_TYPE_WASHING_MACHINE): {
     },
@@ -648,6 +680,17 @@ SET_COMMAND_TYPE = {
     },
     str(DEVICE_TYPE_ERV): {
         ERV_POWER: 0
+    },
+    str(DEVICE_TYPE_LIGHT): {
+        LIGHT_POWER: 0,
+        LIGHT_OPERATION_STATE: 112,
+        LIGHT_CHANNEL_1_TIMER_ON: 113,
+        LIGHT_CHANNEL_1_TIMER_OFF: 114,
+        LIGHT_MAINTAIN_MODE: 115,
+        LIGHT_CHANNEL_2_TIMER_ON: 116,
+        LIGHT_CHANNEL_2_TIMER_OFF: 117,
+        LIGHT_CHANNEL_3_TIMER_ON: 118,
+        LIGHT_CHANNEL_3_TIMER_OFF: 119
     },
     str(DEVICE_TYPE_WASHING_MACHINE): {
         WASHING_MACHINE_ENABLE: 1,
@@ -879,6 +922,75 @@ ERV_NUMBERS: tuple[PanasonicNumberDescription, ...] = (
     )
 )
 
+LIGHT_NUMBERS: tuple[PanasonicNumberDescription, ...] = (
+    PanasonicNumberDescription(
+        key=LIGHT_CHANNEL_1_TIMER_ON,
+        name="Channel 1 Timer On",
+        native_unit_of_measurement=UnitOfTime.HOURS,
+        entity_category=EntityCategory.CONFIG,
+        icon='mdi:timer-cog-outline',
+        native_min_value=0,
+        native_max_value=24,
+        native_step=1,
+        entity_registry_enabled_default=False
+    ),
+    PanasonicNumberDescription(
+        key=LIGHT_CHANNEL_1_TIMER_OFF,
+        name="Channel 1 Timer Off",
+        native_unit_of_measurement=UnitOfTime.HOURS,
+        entity_category=EntityCategory.CONFIG,
+        icon='mdi:timer-cog',
+        native_min_value=0,
+        native_max_value=24,
+        native_step=1,
+        entity_registry_enabled_default=False
+    ),
+    PanasonicNumberDescription(
+        key=LIGHT_CHANNEL_2_TIMER_ON,
+        name="Channel 2 Timer On",
+        native_unit_of_measurement=UnitOfTime.HOURS,
+        entity_category=EntityCategory.CONFIG,
+        icon='mdi:timer-cog-outline',
+        native_min_value=0,
+        native_max_value=24,
+        native_step=1,
+        entity_registry_enabled_default=False
+    ),
+    PanasonicNumberDescription(
+        key=LIGHT_CHANNEL_2_TIMER_OFF,
+        name="Channel 2 Timer Off",
+        native_unit_of_measurement=UnitOfTime.HOURS,
+        entity_category=EntityCategory.CONFIG,
+        icon='mdi:timer-cog',
+        native_min_value=0,
+        native_max_value=24,
+        native_step=1,
+        entity_registry_enabled_default=False
+    ),
+    PanasonicNumberDescription(
+        key=LIGHT_CHANNEL_3_TIMER_ON,
+        name="Channel 3 Timer On",
+        native_unit_of_measurement=UnitOfTime.HOURS,
+        entity_category=EntityCategory.CONFIG,
+        icon='mdi:timer-cog-outline',
+        native_min_value=0,
+        native_max_value=24,
+        native_step=1,
+        entity_registry_enabled_default=False
+    ),
+    PanasonicNumberDescription(
+        key=LIGHT_CHANNEL_3_TIMER_OFF,
+        name="Channel 3 Timer Off",
+        native_unit_of_measurement=UnitOfTime.HOURS,
+        entity_category=EntityCategory.CONFIG,
+        icon='mdi:timer-cog',
+        native_min_value=0,
+        native_max_value=24,
+        native_step=1,
+        entity_registry_enabled_default=False
+    )
+)
+
 @dataclass
 class PanasonicSelectDescription(
     SelectEntityDescription
@@ -1019,6 +1131,25 @@ FRIDGE_SELECTS: tuple[PanasonicSelectDescription, ...] = (
         icon='mdi:fridge-outline',
         options=["Weak", "Medium", "Strong"],
         options_value=["0", "2", "4"],
+    )
+)
+
+LIGHT_SELECTS: tuple[PanasonicSelectDescription, ...] = (
+    PanasonicSelectDescription(
+        key=LIGHT_OPERATION_STATE,
+        name="Operation Mode",
+        entity_category=EntityCategory.CONFIG,
+        icon='mdi:dip-switch',
+        options=["All Off", "Channel 1 On", "Channel 2 On", "Channel 1, 2 On", "Channel 3 On", "Channel 1, 3 On", "Channel 2, 3 On", "All On"],
+        options_value=["0", "1", "2", "3", "4", "5", "6", "7"],
+    ),
+    PanasonicSelectDescription(
+        key=AIRPURIFIER_RESERVED,
+        name="Reserved",
+        entity_category=EntityCategory.CONFIG,
+        icon='mdi:help',
+        options=[],
+        options_value=[]
     )
 )
 
@@ -1522,6 +1653,21 @@ FRIDGE_SWITCHES: tuple[PanasonicSwitchDescription, ...] = (
     )
 )
 
+LIGHT_SWITCHES: tuple[PanasonicSwitchDescription, ...] = (
+    PanasonicSwitchDescription(
+        key=LIGHT_MAINTAIN_MODE,
+        name="Maintain Mode",
+        device_class=SwitchDeviceClass.SWITCH,
+        icon='mdi:swap-horizontal'
+    ),
+    PanasonicSwitchDescription(
+        key=LIGHT_RESERVED,
+        name="Reserved",
+        entity_category=SwitchDeviceClass.SWITCH,
+        icon='mdi:help'
+    )
+)
+
 WASHING_MACHINE_SWITCHES: tuple[PanasonicSwitchDescription, ...] = (
     PanasonicSwitchDescription(
         key=WASHING_MACHINE_ENABLE,
@@ -1549,7 +1695,8 @@ SAA_BINARY_SENSORS = {
 SAA_NUMBERS = {
     DEVICE_TYPE_CLIMATE: CLIMATE_NUMBERS,
     DEVICE_TYPE_DEHUMIDIFIER: DEHUMIDIFIER_NUMBERS,
-    DEVICE_TYPE_ERV: ERV_NUMBERS
+    DEVICE_TYPE_ERV: ERV_NUMBERS,
+    DEVICE_TYPE_LIGHT: LIGHT_NUMBERS
 }
 
 SAA_SELECTS = {
@@ -1557,7 +1704,8 @@ SAA_SELECTS = {
     DEVICE_TYPE_CLIMATE: CLIMATE_SELECTS,
     DEVICE_TYPE_DEHUMIDIFIER: DEHUMIDIFIER_SELECTS,
     DEVICE_TYPE_ERV: ERV_SELECTS,
-    DEVICE_TYPE_FRIDGE: FRIDGE_SELECTS
+    DEVICE_TYPE_FRIDGE: FRIDGE_SELECTS,
+    DEVICE_TYPE_LIGHT: LIGHT_SELECTS
 }
 
 SAA_SENSORS = {
@@ -1572,5 +1720,6 @@ SAA_SWITCHES = {
     DEVICE_TYPE_AIRPURIFIER: AIRPURIFIER_SWITCHES,
     DEVICE_TYPE_CLIMATE: CLIMATE_SWITCHES,
     DEVICE_TYPE_DEHUMIDIFIER: DEHUMIDIFIER_SWITCHES,
-    DEVICE_TYPE_FRIDGE: FRIDGE_SWITCHES
+    DEVICE_TYPE_FRIDGE: FRIDGE_SWITCHES,
+    DEVICE_TYPE_LIGHT: LIGHT_SWITCHES
 }
