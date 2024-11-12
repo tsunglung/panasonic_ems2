@@ -10,7 +10,7 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .core import PanasonicSmartHome
+from .core.cloud import PanasonicSmartHome
 from .core.const import (
     CONF_UPDATE_INTERVAL,
     DATA_COORDINATOR,

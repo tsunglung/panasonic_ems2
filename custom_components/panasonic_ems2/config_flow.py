@@ -18,7 +18,7 @@ import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .core import PanasonicSmartHome
+from .core.cloud import PanasonicSmartHome
 from .core.exceptions import Ems2ExceedRateLimit, Ems2LoginFailed
 from .core.const import (
     CONF_UPDATE_INTERVAL,
