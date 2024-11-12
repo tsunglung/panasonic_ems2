@@ -81,7 +81,7 @@ class PanasonicSwitch(PanasonicBaseEntity, SwitchEntity):
 
     @property
     def name(self):
-        """Return the name of the sensor."""
+        """Return the name of the switch."""
         name = self.client.get_command_name(self.device_gwid, self.entity_description.key)
 
         if name is not None:
@@ -90,8 +90,14 @@ class PanasonicSwitch(PanasonicBaseEntity, SwitchEntity):
                 return "{} {}".format(
                     self.info["NickName"], self.entity_description.name
                 )
-            return "{} {}".format(
-                self.info["NickName"], name
+            device_name = ""
+            for dev in self.info.get("Devices", {}):
+                if self.device_id == dev.get("DeviceID", 0):
+                    device_name = dev.get("Name", "")
+                    break
+
+            return "{} {}{}".format(
+                self.info["NickName"], device_name, name
             )
         return "{} {}".format(
             self.info["NickName"], self.entity_description.name
@@ -99,7 +105,7 @@ class PanasonicSwitch(PanasonicBaseEntity, SwitchEntity):
 
     @property
     def unique_id(self):
-        """Return the unique of the sensor."""
+        """Return the unique of the switch."""
         return "{}_{}_{}".format(
             self.device_gwid,
             self.device_id,

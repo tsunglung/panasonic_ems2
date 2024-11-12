@@ -1655,6 +1655,12 @@ FRIDGE_SWITCHES: tuple[PanasonicSwitchDescription, ...] = (
 
 LIGHT_SWITCHES: tuple[PanasonicSwitchDescription, ...] = (
     PanasonicSwitchDescription(
+        key=LIGHT_POWER,
+        name="Switch",
+        device_class=SwitchDeviceClass.SWITCH,
+        icon='mdi:toggle-switch'
+    ),
+    PanasonicSwitchDescription(
         key=LIGHT_MAINTAIN_MODE,
         name="Maintain Mode",
         device_class=SwitchDeviceClass.SWITCH,
