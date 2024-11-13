@@ -34,6 +34,7 @@ from .const import (
     CLIMATE_PM25,
     DEVICE_TYPE_DEHUMIDIFIER,
     DEVICE_TYPE_FRIDGE,
+    DEVICE_TYPE_LIGHT,
     DEVICE_TYPE_WASHING_MACHINE,
     DEVICE_TYPE_WEIGHT_PLATE,
     ENTITY_MONTHLY_ENERGY,
@@ -47,6 +48,12 @@ from .const import (
     FRIDGE_THAW_TEMPERATURE,
     FRIDGE_XGS_COMMANDS,
     HA_USER_AGENT,
+    LIGHT_CHANNEL_1_TIMER_ON,
+    LIGHT_CHANNEL_1_TIMER_OFF,
+    LIGHT_CHANNEL_2_TIMER_ON,
+    LIGHT_CHANNEL_2_TIMER_OFF,
+    LIGHT_CHANNEL_3_TIMER_ON,
+    LIGHT_CHANNEL_3_TIMER_OFF,
     WASHING_MACHINE_MODELS,
     WASHING_MACHINE_2020_MODELS,
     WASHING_MACHINE_OPERATING_STATUS,
@@ -408,7 +415,7 @@ class PanasonicSmartHome(object):
             self._devices_info[gwid]["Information"] = info
         return info
 
-    def _get_commands(self, device_type, model_type):
+    def _get_commands(self, device_type, model_type, model):
         """
         get commands (saa: service code)
         """
@@ -426,6 +433,15 @@ class PanasonicSmartHome(object):
                 len(extra_cmds) < 1
             ):
             new_cmds = cmds + extra_cmds + FRIDGE_XGS_COMMANDS
+        elif (int(device_type) == DEVICE_TYPE_LIGHT):
+            # TODO: hardcode here first
+            new_cmds = cmds
+            if model in ["F540107", "F241107"]:
+                new_cmds = new_cmds + [LIGHT_CHANNEL_1_TIMER_ON, LIGHT_CHANNEL_1_TIMER_OFF]
+            if model == "F540207":
+                new_cmds = new_cmds + [LIGHT_CHANNEL_2_TIMER_ON, LIGHT_CHANNEL_2_TIMER_OFF]
+            if model == "F540307":
+                new_cmds = new_cmds + [LIGHT_CHANNEL_3_TIMER_ON, LIGHT_CHANNEL_3_TIMER_OFF]
         else:
             new_cmds = cmds + extra_cmds
 
@@ -705,6 +721,7 @@ class PanasonicSmartHome(object):
             gwid = device["GWID"]
             device_type = device["DeviceType"]
             model_type = device["ModelType"]
+            model = device["Model"]
 
             if len(self._select_devices) >= 1:
                 if gwid not in self._select_devices:
@@ -731,7 +748,8 @@ class PanasonicSmartHome(object):
                 continue
             command_types = self._get_commands(
                 device_type,
-                model_type
+                model_type,
+                model
             )
             await asyncio.sleep(.1)
             await self.get_device_with_info(device, command_types)
@@ -751,7 +769,8 @@ class PanasonicSmartHome(object):
 
         command_types = self._get_commands(
             device["DeviceType"],
-            device["ModelType"]
+            device["ModelType"],
+            device["Model"]
         )
         await self.get_device_with_info(device, command_types)
 
