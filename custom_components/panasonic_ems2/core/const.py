@@ -399,13 +399,13 @@ LIGHT_RESERVED = "0x7F"
 
 LIGHT_WTY_COMMANDS = [
 #    LIGHT_OPERATION_STATE,
-    LIGHT_CHANNEL_1_TIMER_ON,
-    LIGHT_CHANNEL_1_TIMER_OFF,
+#    LIGHT_CHANNEL_1_TIMER_ON,
+#    LIGHT_CHANNEL_1_TIMER_OFF,
     LIGHT_MAINTAIN_MODE,
-    LIGHT_CHANNEL_2_TIMER_ON,
-    LIGHT_CHANNEL_2_TIMER_OFF,
-    LIGHT_CHANNEL_3_TIMER_ON,
-    LIGHT_CHANNEL_3_TIMER_OFF
+#    LIGHT_CHANNEL_2_TIMER_ON,
+#    LIGHT_CHANNEL_2_TIMER_OFF,
+#    LIGHT_CHANNEL_3_TIMER_ON,
+#    LIGHT_CHANNEL_3_TIMER_OFF
 ]
 
 WASHING_MACHINE_POWER = "0x00"
@@ -787,6 +787,20 @@ ERV_BINARY_SENSORS: tuple[PanasonicBinarySensorDescription, ...] = (
 )
 
 FRIDGE_BINARY_SENSORS: tuple[PanasonicBinarySensorDescription, ...] = (
+    PanasonicBinarySensorDescription(
+        key=ENTITY_UPDATE,
+        name="Firmware Update",
+        icon='mdi:package-up',
+        device_class=BinarySensorDeviceClass.UPDATE
+    ),
+    PanasonicBinarySensorDescription(
+        key=ENTITY_EMPTY,
+        name="Empty",
+        icon='mdi:cog'
+    )
+)
+
+LIGHT_BINARY_SENSORS: tuple[PanasonicBinarySensorDescription, ...] = (
     PanasonicBinarySensorDescription(
         key=ENTITY_UPDATE,
         name="Firmware Update",
@@ -1664,12 +1678,13 @@ LIGHT_SWITCHES: tuple[PanasonicSwitchDescription, ...] = (
         key=LIGHT_MAINTAIN_MODE,
         name="Maintain Mode",
         device_class=SwitchDeviceClass.SWITCH,
+        entity_category=EntityCategory.CONFIG,
         icon='mdi:swap-horizontal'
     ),
     PanasonicSwitchDescription(
         key=LIGHT_RESERVED,
         name="Reserved",
-        entity_category=SwitchDeviceClass.SWITCH,
+        device_class=SwitchDeviceClass.SWITCH,
         icon='mdi:help'
     )
 )
@@ -1695,6 +1710,7 @@ SAA_BINARY_SENSORS = {
     DEVICE_TYPE_DEHUMIDIFIER: DEHUMIDIFIER_BINARY_SENSORS,
     DEVICE_TYPE_ERV: ERV_BINARY_SENSORS,
     DEVICE_TYPE_FRIDGE: FRIDGE_BINARY_SENSORS,
+    DEVICE_TYPE_LIGHT: LIGHT_BINARY_SENSORS,
     DEVICE_TYPE_WASHING_MACHINE: WASHING_MACHINE_BINARY_SENSORS
 }
 

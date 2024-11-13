@@ -394,11 +394,19 @@ class PanasonicSmartHome(object):
             "GWID": gwid
         }
         data = []
+        device_func = []
         for dev in device["Devices"]:
             if dev:
                 device_id = dev.get("DeviceID", 1)
+                device_func = self._get_device_commands(
+                                device["DeviceType"],
+                                device["ModelType"],
+                                device["Model"],
+                                device_id
+                            )
+                device_func.extend(func)
                 data.append(
-                    {"CommandTypes": func, "DeviceID": device_id}
+                    {"CommandTypes": device_func, "DeviceID": device_id}
                 )
         response = await self.request(
             method="POST", headers=header, data=data, endpoint=apis.post_device_get_info()
@@ -433,15 +441,6 @@ class PanasonicSmartHome(object):
                 len(extra_cmds) < 1
             ):
             new_cmds = cmds + extra_cmds + FRIDGE_XGS_COMMANDS
-        elif (int(device_type) == DEVICE_TYPE_LIGHT):
-            # TODO: hardcode here first
-            new_cmds = cmds
-            if model in ["F540107", "F241107"]:
-                new_cmds = new_cmds + [LIGHT_CHANNEL_1_TIMER_ON, LIGHT_CHANNEL_1_TIMER_OFF]
-            if model == "F540207":
-                new_cmds = new_cmds + [LIGHT_CHANNEL_2_TIMER_ON, LIGHT_CHANNEL_2_TIMER_OFF]
-            if model == "F540307":
-                new_cmds = new_cmds + [LIGHT_CHANNEL_3_TIMER_ON, LIGHT_CHANNEL_3_TIMER_OFF]
         else:
             new_cmds = cmds + extra_cmds
 
@@ -450,6 +449,26 @@ class PanasonicSmartHome(object):
                 if cmd in new_cmds:
                     new_cmds.remove(cmd)
 
+        for cmd in new_cmds:
+            commands_type.append(
+                {"CommandType": cmd}
+            )
+
+        return commands_type
+
+    def _get_device_commands(self, device_type, model_type, model, device_id):
+        """
+        get commands (saa: service code)
+        """
+        new_cmds = []
+        if (int(device_type) == DEVICE_TYPE_LIGHT):
+            if ((model in ["F540107", "F241107", "F540207", "F540207"]) and (device_id == 1)):
+                new_cmds.extend([LIGHT_CHANNEL_1_TIMER_ON, LIGHT_CHANNEL_1_TIMER_OFF])
+            elif ((model in ["F540207", "F540207"]) and (device_id == 2)):
+                new_cmds.extend([LIGHT_CHANNEL_2_TIMER_ON, LIGHT_CHANNEL_2_TIMER_OFF])
+            elif ((model == "F540307") and (device_id == 3)):
+                new_cmds.extend([LIGHT_CHANNEL_3_TIMER_ON, LIGHT_CHANNEL_3_TIMER_OFF])
+        commands_type = []
         for cmd in new_cmds:
             commands_type.append(
                 {"CommandType": cmd}
@@ -736,6 +755,9 @@ class PanasonicSmartHome(object):
                 await asyncio.sleep(.1)
                 await self.get_plate_info(device, get_update_info)
                 continue
+
+            if device_type == str(DEVICE_TYPE_LIGHT):
+                gwid_status[gwid] = "force update"
 
             if len(gwid_status[gwid]) < 1:
                 # No status code, it maybe offline or power off of washing machine or network busy
