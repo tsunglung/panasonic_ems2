@@ -1148,25 +1148,6 @@ FRIDGE_SELECTS: tuple[PanasonicSelectDescription, ...] = (
     )
 )
 
-LIGHT_SELECTS: tuple[PanasonicSelectDescription, ...] = (
-    PanasonicSelectDescription(
-        key=LIGHT_OPERATION_STATE,
-        name="Operation Mode",
-        entity_category=EntityCategory.CONFIG,
-        icon='mdi:dip-switch',
-        options=["All Off", "Channel 1 On", "Channel 2 On", "Channel 1, 2 On", "Channel 3 On", "Channel 1, 3 On", "Channel 2, 3 On", "All On"],
-        options_value=["0", "1", "2", "3", "4", "5", "6", "7"],
-    ),
-    PanasonicSelectDescription(
-        key=AIRPURIFIER_RESERVED,
-        name="Reserved",
-        entity_category=EntityCategory.CONFIG,
-        icon='mdi:help',
-        options=[],
-        options_value=[]
-    )
-)
-
 WASHING_MACHINE_SELECTS: tuple[PanasonicSelectDescription, ...] = (
     PanasonicSelectDescription(
         key=WASHING_MACHINE_PROGRESS,
@@ -1406,6 +1387,21 @@ FRIDGE_SENSORS: tuple[PanasonicSensorDescription, ...] = (
         state_class=SensorStateClass.TOTAL_INCREASING,
         device_class=SensorDeviceClass.ENERGY,
         icon="mdi:flash"
+    )
+)
+
+LIGHT_SENSORS: tuple[PanasonicSensorDescription, ...] = (
+    PanasonicSensorDescription(
+        key=LIGHT_OPERATION_STATE,
+        name="Operation Mode",
+        icon='mdi:dip-switch',
+#        options=["All Off", "Channel 1 On", "Channel 2 On", "Channel 1, 2 On", "Channel 3 On", "Channel 1, 3 On", "Channel 2, 3 On", "All On"],
+#        options_value=["0", "1", "2", "3", "4", "5", "6", "7"],
+    ),
+    PanasonicSensorDescription(
+        key=LIGHT_RESERVED,
+        name="Reserved",
+        icon='mdi:help'
     )
 )
 
@@ -1726,8 +1722,7 @@ SAA_SELECTS = {
     DEVICE_TYPE_CLIMATE: CLIMATE_SELECTS,
     DEVICE_TYPE_DEHUMIDIFIER: DEHUMIDIFIER_SELECTS,
     DEVICE_TYPE_ERV: ERV_SELECTS,
-    DEVICE_TYPE_FRIDGE: FRIDGE_SELECTS,
-    DEVICE_TYPE_LIGHT: LIGHT_SELECTS
+    DEVICE_TYPE_FRIDGE: FRIDGE_SELECTS
 }
 
 SAA_SENSORS = {
@@ -1735,7 +1730,8 @@ SAA_SENSORS = {
     DEVICE_TYPE_CLIMATE: CLIMATE_SENSORS,
     DEVICE_TYPE_DEHUMIDIFIER: DEHUMIDIFIER_SENSORS,
     DEVICE_TYPE_ERV: ERV_SENSORS,
-    DEVICE_TYPE_FRIDGE: FRIDGE_SENSORS
+    DEVICE_TYPE_FRIDGE: FRIDGE_SENSORS,
+    DEVICE_TYPE_LIGHT: LIGHT_SENSORS
 }
 
 SAA_SWITCHES = {

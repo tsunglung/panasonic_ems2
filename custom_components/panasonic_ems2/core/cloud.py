@@ -48,6 +48,7 @@ from .const import (
     FRIDGE_THAW_TEMPERATURE,
     FRIDGE_XGS_COMMANDS,
     HA_USER_AGENT,
+    LIGHT_OPERATION_STATE,
     LIGHT_CHANNEL_1_TIMER_ON,
     LIGHT_CHANNEL_1_TIMER_OFF,
     LIGHT_CHANNEL_2_TIMER_ON,
@@ -463,7 +464,7 @@ class PanasonicSmartHome(object):
         new_cmds = []
         if (int(device_type) == DEVICE_TYPE_LIGHT):
             if ((model in ["F540107", "F241107", "F540207", "F540207"]) and (device_id == 1)):
-                new_cmds.extend([LIGHT_CHANNEL_1_TIMER_ON, LIGHT_CHANNEL_1_TIMER_OFF])
+                new_cmds.extend([LIGHT_CHANNEL_1_TIMER_ON, LIGHT_CHANNEL_1_TIMER_OFF, LIGHT_OPERATION_STATE])
             elif ((model in ["F540207", "F540207"]) and (device_id == 2)):
                 new_cmds.extend([LIGHT_CHANNEL_2_TIMER_ON, LIGHT_CHANNEL_2_TIMER_OFF])
             elif ((model == "F540307") and (device_id == 3)):

@@ -13,7 +13,10 @@ from .core.const import (
     DOMAIN,
     DATA_CLIENT,
     DATA_COORDINATOR,
+    DEVICE_TYPE_LIGHT,
     DEVICE_TYPE_WASHING_MACHINE,
+    LIGHT_POWER,
+    LIGHT_OPERATION_STATE,
     WASHING_MACHINE_SWITCHES,
     SAA_SWITCHES,
     PanasonicSwitchDescription
@@ -114,10 +117,23 @@ class PanasonicSwitch(PanasonicBaseEntity, SwitchEntity):
 
     @property
     def is_on(self) -> int:
-        status = self.get_status(self.coordinator.data)
+        device_id = self.device_id
+        info = self.coordinator.data
+        status = self.get_status(info)
+
         avaiable = status.get(self.entity_description.key, None)
         if avaiable is None:
             return STATE_UNAVAILABLE
+
+        if ((int(info[self.device_gwid].get("DeviceType")) == DEVICE_TYPE_LIGHT) and
+                (self.entity_description.key == LIGHT_POWER)):
+            for device in info[self.device_gwid]["Information"]:
+                operation_state = device["status"].get(LIGHT_OPERATION_STATE, None)
+                if operation_state != None:
+                    state = (int(operation_state) & (1 << (device_id - 1))) >> (device_id - 1)
+                    return bool(state)
+            return STATE_UNAVAILABLE
+
         state = status.get(self.entity_description.key)
         if not isinstance(state, int):
             return STATE_UNAVAILABLE
