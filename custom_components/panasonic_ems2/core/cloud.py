@@ -595,11 +595,11 @@ class PanasonicSmartHome(object):
                         self._devices_info[gwid]["Information"][0]["status"][ENTITY_WATER_USED] = gwinfo["WM_WaterUsed_Total"]
                 if info == "Power":
                     if device_type == str(DEVICE_TYPE_DEHUMIDIFIER):
-                        self._devices_info[gwid]["Information"][0]["status"][ENTITY_MONTHLY_ENERGY] = gwinfo["Total_kwh"]
+                        self._devices_info[gwid]["Information"][0]["status"][ENTITY_MONTHLY_ENERGY] = gwinfo["Total_kwh"] * 0.1
                     if device_type == str(DEVICE_TYPE_FRIDGE):
-                        self._devices_info[gwid]["Information"][0]["status"][ENTITY_MONTHLY_ENERGY] = gwinfo["Total_kwh"]
+                        self._devices_info[gwid]["Information"][0]["status"][ENTITY_MONTHLY_ENERGY] = gwinfo["Total_kwh"] * 0.1
                     if device_type == str(DEVICE_TYPE_WASHING_MACHINE):
-                        self._devices_info[gwid]["Information"][0]["status"][ENTITY_MONTHLY_ENERGY] = gwinfo["Total_kwh"]
+                        self._devices_info[gwid]["Information"][0]["status"][ENTITY_MONTHLY_ENERGY] = gwinfo["Total_kwh"] * 0.1
 
         return True
 
