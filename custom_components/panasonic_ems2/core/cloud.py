@@ -5,7 +5,7 @@ from http import HTTPStatus
 import requests
 import json
 from datetime import datetime
-from dateutil import tz as timezone
+import pytz
 from typing import Literal
 
 from homeassistant.helpers.update_coordinator import UpdateFailed
@@ -76,7 +76,7 @@ from .const import (
     USER_INFO_TYPES,
     REQUEST_TIMEOUT
 )
-
+local_tz = pytz.timezone('Asia/Taipei')
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -666,11 +666,11 @@ class PanasonicSmartHome(object):
                 info[WEIGHT_PLATE_MANAGEMENT_MODE] = response.get("ManagementMode", None)
                 info[WEIGHT_PLATE_MANAGEMENT_VALUE] = response.get("ManagementValue", None)
                 info[WEIGHT_PLATE_AMOUNT_MAX] = response.get("AmountMax", None)
-                tz = timezone.gettz('Asia/Taipei')
+
                 dt = response.get("BuyDate", None)
-                info[WEIGHT_PLATE_BUY_DATE] = datetime.fromtimestamp(int(dt), tz) if isinstance(dt, str) else None
+                info[WEIGHT_PLATE_BUY_DATE] = datetime.fromtimestamp(int(dt), local_tz) if isinstance(dt, str) else None
                 dt = response.get("DueDate", None)
-                info[WEIGHT_PLATE_DUE_DATE] = datetime.fromtimestamp(int(dt), tz) if isinstance(dt, str) else None
+                info[WEIGHT_PLATE_DUE_DATE] = datetime.fromtimestamp(int(dt), local_tz) if isinstance(dt, str) else None
                 info[WEIGHT_PLATE_COMMUNICATION_MODE] = response.get("CommunicationMode", None)
                 info[WEIGHT_PLATE_COMMUNICATION_TIME] = response.get("CommunicationTime", None)
                 info[WEIGHT_PLATE_TOTAL_WEIGHT] = response.get("TotalWeight", None)

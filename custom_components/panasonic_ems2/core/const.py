@@ -120,6 +120,7 @@ AIRPURIFIER_HEAP_REPLACE_NOTIFY = "0x06"
 AIRPURIFIER_NANOEX = "0x07"
 AIRPURIFIER_LOCK = "0x08"
 AIRPURIFIER_ERROR_CODE = "0x09"
+AIRPURIFIER_ENERGY = "0x0E"
 AIRPURIFIER_PM25 = "0x50"
 AIRPURIFIER_51 = "0x51"
 AIRPURIFIER_52 = "0x52"
@@ -489,6 +490,7 @@ COMMANDS_TYPE= {
         #AIRPURIFIER_TIMER_ON,
         #AIRPURIFIER_TIMER_OFF,
         #AIRPURIFIER_AIR_QUALITY,
+        AIRPURIFIER_ENERGY,
         AIRPURIFIER_HEAP_REPLACE_NOTIFY,
         AIRPURIFIER_NANOEX,
         AIRPURIFIER_PET_MODE,
@@ -1217,6 +1219,14 @@ AIRPURIFIER_SENSORS: tuple[PanasonicSensorDescription, ...] = (
         key=AIRPURIFIER_ERROR_CODE,
         name="Error Code",
         icon="mdi:alert-circle"
+    ),
+    PanasonicSensorDescription(
+        key=AIRPURIFIER_ENERGY,
+        name="Energy",
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        device_class=SensorDeviceClass.ENERGY,
+        icon="mdi:flash"
     )
 )
 
