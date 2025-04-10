@@ -1642,6 +1642,12 @@ FRIDGE_SWITCHES: tuple[PanasonicSwitchDescription, ...] = (
         icon='mdi:atom-variant'
     ),
     PanasonicSwitchDescription(
+        key=FRIDGE_STOP_ICE_MAKING,
+        name="Stop Ice Making",
+        device_class=SwitchDeviceClass.SWITCH,
+        icon='mdi:snowflake'
+    ),
+    PanasonicSwitchDescription(
         key=FRIDGE_FAST_ICE_MAKING,
         name="Fast Ice Making",
         device_class=SwitchDeviceClass.SWITCH,
