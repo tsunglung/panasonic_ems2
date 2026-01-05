@@ -131,6 +131,13 @@ class PanasonicSensor(PanasonicBaseEntity, SensorEntity):
             if self.entity_description.device_class == SensorDeviceClass.TEMPERATURE:
                 if value < -1 or value > 50:
                     return None
+        if device_type == DEVICE_TYPE_FRIDGE:
+            if value > 60000:
+                value = value - 65535
+            elif value > 30000:
+                value = value - 32768
+            elif value > 200:
+                value = value - 255
         if self.entity_description.device_class == SensorDeviceClass.HUMIDITY:
             if value < 30:
                 return None
